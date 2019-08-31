@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace CqrsInAzure.Common
+namespace CqrsInAzure.Candidates.Repositories
 {
     public abstract class DocumentDbRepository<T>
         where T : class
@@ -17,13 +17,18 @@ namespace CqrsInAzure.Common
         protected readonly DocumentClient Client;
 
         protected readonly string CollectionId = "";
-        protected readonly string DatabaseId = "";
-        protected readonly string Endpoint = "";
-        protected readonly string AuthKey = "";
         protected readonly string PartitionKeyPath = "";
 
-        protected DocumentDbRepository()
+        // move to settings
+        protected readonly string DatabaseId = "cqrs-in-azure";
+        protected readonly string Endpoint = "https://cqrs-in-azure.documents.azure.com:443/";
+        protected readonly string AuthKey = "6W5mEPbFOpv1CSvBHOwcgPJdxtip0CEwqPvjZ79ydffwFYOkHcHZrKbzLdFJRCLXThJUI8otQyJKk1HRWSozHw==";
+
+        protected DocumentDbRepository(string collectionId, string partitionKeyPath)
         {
+            CollectionId = collectionId;
+            PartitionKeyPath = partitionKeyPath;
+
             Client = new DocumentClient(new Uri(Endpoint), AuthKey);
             Client.CreateDatabaseIfNotExistsAsync(new Database { Id = DatabaseId }).Wait();
             Client.CreateDocumentCollectionIfNotExistsAsync(
@@ -83,11 +88,12 @@ namespace CqrsInAzure.Common
                 item);
         }
 
-        public async Task<Document> UpdateItemAsync(string id, T item)
+        public async Task<Document> UpdateItemAsync(string id, string partitionKey, T item)
         {
             return await Client.ReplaceDocumentAsync(
                 UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
-                item);
+                item,
+                new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
         }
 
         public async Task DeleteItemAsync(string id, string partitionKey)

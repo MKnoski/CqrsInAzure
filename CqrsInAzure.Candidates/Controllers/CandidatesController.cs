@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
-using CqrsInAzure.Candidates.Services;
+using System.Threading.Tasks;
+using CqrsInAzure.Candidates.Models;
+using CqrsInAzure.Candidates.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CqrsInAzure.Candidates.Controllers
@@ -8,43 +10,48 @@ namespace CqrsInAzure.Candidates.Controllers
     [ApiController]
     public class CandidatesController : ControllerBase
     {
-        private readonly CandidatesService _service;
+        private readonly CandidatesRepository repository;
 
         public CandidatesController()
         {
-            _service = new CandidatesService();
+            this.repository = new CandidatesRepository();
         }
 
-        // GET: api/Candidates
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IEnumerable<Candidate>> Get()
         {
-            return new string[] { "value1", "value2" };
+            var candidates = await this.repository.GetItemsAsync(candidate => true);
+
+            return candidates;
         }
 
-        // GET: api/Candidates/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        [HttpGet("{id}/{partitionKey}", Name = "Get")]
+        public async Task<Candidate> Get(string id, string partitionKey)
         {
-            return "value";
+            var candidate = await this.repository.GetItemAsync(id, partitionKey);
+
+            return candidate;
         }
 
-        // POST: api/Candidates
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task Post([FromBody] Candidate candidate)
         {
+            await this.repository.CreateItemAsync(candidate);
         }
 
-        // PUT: api/Candidates/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut("{id}/{partitionKey}")]
+        public async Task Put(string id, string partitionKey, [FromBody] Candidate candidate)
         {
+            candidate.Id = id;
+            candidate.CategoryId = partitionKey;
+
+            await this.repository.UpdateItemAsync(id, partitionKey, candidate);
         }
 
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("{id}/{partitionKey}")]
+        public async Task Delete(string id, string partitionKey)
         {
+            await this.repository.DeleteItemAsync(id, partitionKey);
         }
     }
 }
