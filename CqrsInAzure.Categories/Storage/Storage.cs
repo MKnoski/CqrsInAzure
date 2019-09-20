@@ -83,7 +83,7 @@ namespace CqrsInAzure.Candidates.Services
         {
             CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
 
-            var downloadLink = GetDownloadLinkAsync(blob.Name);
+            var downloadLink = GetDownloadLink(blob.Name);
 
             await blob.FetchAttributesAsync();
             long fileByteLength = blob.Properties.Length;
@@ -103,7 +103,7 @@ namespace CqrsInAzure.Candidates.Services
             await blob.DownloadToFileAsync(localPath, FileMode.Create);
         }
 
-        private async Task<string> GetDownloadLinkAsync(string blobName)
+        private string GetDownloadLink(string blobName)
         {
             CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
 
@@ -117,7 +117,7 @@ namespace CqrsInAzure.Candidates.Services
             //Set content-disposition header for force download
             SharedAccessBlobHeaders headers = new SharedAccessBlobHeaders()
             {
-                ContentDisposition = string.Format("attachment;filename=\"{0}\"", blobName),
+                ContentDisposition = $"attachment;filename=\"{blobName}\"",
             };
 
             var sasToken = blob.GetSharedAccessSignature(policy, headers);
