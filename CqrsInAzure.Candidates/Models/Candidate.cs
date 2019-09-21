@@ -19,8 +19,8 @@ namespace CqrsInAzure.Candidates.Models
         [JsonProperty(PropertyName = "skills")]
         public string[] Skills { get; set; }
 
-        [JsonProperty(PropertyName = "categoryId")]
-        public string CategoryId { get; set; }
+        [JsonProperty(PropertyName = "categoryName")]
+        public string CategoryName { get; set; }
 
         [JsonProperty(PropertyName = "cvId")]
         public string CvId { get; set; }

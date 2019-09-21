@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CqrsInAzure.Categories.Storage
+namespace CqrsInAzure.Candidates.Storage
 {
     public class Storage
     {
@@ -16,7 +16,7 @@ namespace CqrsInAzure.Categories.Storage
         // move to settings
         private readonly string AccountName = "cqrsinazure";
         private readonly string AccountKey = "XgcCDsrFhhdD9Tf0seCVJIBqd3NioaGdJ1LNv7ufMTqtHBTRTKdewctwDNs+0BhCH5IjFB1XY+KVlrJ1qeaOZQ==";
-
+        
         public Storage(string containerName)
         {
             StorageCredentials storageCredentials = new StorageCredentials(AccountName, AccountKey);

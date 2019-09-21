@@ -5,7 +5,7 @@ namespace CqrsInAzure.Candidates.Repositories
     public class CandidatesRepository : DocumentDbRepository<Candidate>
     {
         public CandidatesRepository() 
-            : base("Candidates", "/categoryId")
+            : base("Candidates", "/categoryName")
         {
         }
     }
