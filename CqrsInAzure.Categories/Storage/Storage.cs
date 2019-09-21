@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CqrsInAzure.Candidates.Services
+namespace CqrsInAzure.Categories.Storage
 {
     public class Storage
     {

@@ -12,11 +12,11 @@ namespace CqrsInAzure.Categories.Storage
     {
         private static readonly string ContainerName = "categories";
 
-        private readonly Candidates.Services.Storage storage;
+        private readonly Storage storage;
 
         public CategoriesStorage()
         {
-            this.storage = new Candidates.Services.Storage(ContainerName);
+            this.storage = new Storage(ContainerName);
         }
 
         public async Task<IEnumerable<Category>> GetAllAsync()
