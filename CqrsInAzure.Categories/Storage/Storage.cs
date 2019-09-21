@@ -26,18 +26,13 @@ namespace CqrsInAzure.Candidates.Services
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             container = blobClient.GetContainerReference(containerName);
-
-            //await container.CreateIfNotExistsAsync();
         }
 
-        public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType = "")
+        public async Task<string> UploadFileAsync(Stream fileStream, string name, string contentType = "")
         {
             await container.CreateIfNotExistsAsync();
 
-            var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            var blobName = $"{fileName.ToLower()}_{timestamp}";
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
+            CloudBlockBlob blob = Get(name);
 
             fileStream.Position = 0;
             await blob.UploadFromStreamAsync(fileStream);
@@ -51,20 +46,29 @@ namespace CqrsInAzure.Candidates.Services
             return blob.Name;
         }
 
-        public async Task<byte[]> DownloadFileAsync(string blobName)
+        public async Task<string> ReUploadFileAsync(CloudBlockBlob oldBlob, string newName, Stream fileStream, string contentType = "")
         {
-            var byteArray = await DownloadToByteArray(blobName);
-            return byteArray;
+            var name = await UploadFileAsync(fileStream, newName, contentType);
+            await oldBlob.DeleteIfExistsAsync();
+
+            return name;
         }
 
-        public async Task DeleteFileAsync(string blobName)
+        public async Task DeleteFileAsync(string name)
         {
-            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
+            CloudBlockBlob blob = Get(name);
 
             await blob.DeleteIfExistsAsync();
         }
 
-        public async Task<IEnumerable<CloudBlockBlob>> ListAllFilesAsync()
+        public CloudBlockBlob Get(string name)
+        {
+            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+
+            return blob;
+        }
+
+        public async Task<IEnumerable<CloudBlockBlob>> GetAllAsync()
         {
             BlobContinuationToken blobContinuationToken = null;
             var results = await this.container.ListBlobsSegmentedAsync(null, blobContinuationToken);
@@ -74,16 +78,22 @@ namespace CqrsInAzure.Candidates.Services
 
         public async Task<bool> IsEmptyAsync()
         {
-            var files = await ListAllFilesAsync();
+            var files = await GetAllAsync();
 
             return !files.Any();
         }
 
-        private async Task<byte[]> DownloadToByteArray(string blobName)
-        {
-            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
+        #region Download files
 
-            var downloadLink = GetDownloadLinkAsync(blob.Name);
+        public async Task<byte[]> DownloadFileAsync(string blobName)
+        {
+            var byteArray = await DownloadToByteArray(blobName);
+            return byteArray;
+        }
+
+        private async Task<byte[]> DownloadToByteArray(string name)
+        {
+            CloudBlockBlob blob = Get(name);
 
             await blob.FetchAttributesAsync();
             long fileByteLength = blob.Properties.Length;
@@ -94,34 +104,13 @@ namespace CqrsInAzure.Candidates.Services
             return byteArray;
         }
 
-        private async Task DownloadToFile(string blobName)
+        private async Task DownloadToFile(string name)
         {
-            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
+            CloudBlockBlob blob = Get(name);
 
             string localPath = Path.GetTempFileName();
 
             await blob.DownloadToFileAsync(localPath, FileMode.Create);
-        }
-
-        private async Task<string> GetDownloadLinkAsync(string blobName)
-        {
-            CloudBlockBlob blob = container.GetBlockBlobReference(blobName);
-
-            //Create an ad-hoc Shared Access Policy with read permissions which will expire in 12 hours
-            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy()
-            {
-                Permissions = SharedAccessBlobPermissions.Read,
-                SharedAccessExpiryTime = DateTime.UtcNow.AddHours(12),
-            };
-
-            //Set content-disposition header for force download
-            SharedAccessBlobHeaders headers = new SharedAccessBlobHeaders()
-            {
-                ContentDisposition = string.Format("attachment;filename=\"{0}\"", blobName),
-            };
-
-            var sasToken = blob.GetSharedAccessSignature(policy, headers);
-            return blob.Uri.AbsoluteUri + sasToken;
         }
 
         private async Task<string> GetBlobName(string uri)
@@ -130,5 +119,7 @@ namespace CqrsInAzure.Candidates.Services
 
             return blob.Name;
         }
+
+        #endregion
     }
 }

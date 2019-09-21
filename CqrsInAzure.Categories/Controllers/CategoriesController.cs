@@ -27,28 +27,28 @@ namespace CqrsInAzure.Categories.Controllers
             return categories;
         }
 
-        [HttpGet("{id}")]
-        public async Task<Category> GetAsync(string id)
+        [HttpGet("{name}")]
+        public async Task<Category> GetAsync(string name)
         {
-            return await this.storage.GetAsync(id) ;
+            return await this.storage.GetAsync(name) ;
         }
 
         [HttpPost]
-        public async void PostAsync([FromBody] Category category)
+        public async Task<string> PostAsync([FromBody] Category category)
         {
-            await this.storage.AddAsync(category);
+            return await this.storage.AddAsync(category);
         }
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut("{name}")]
+        public Task<string> Put(string name, [FromBody] Category category)
         {
+            return this.storage.UpdateAsync(name, category);
         }
 
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("{name}")]
+        public async void DeleteAsync(string name)
         {
+            await this.storage.DeleteAsync(name);
         }
     }
 }

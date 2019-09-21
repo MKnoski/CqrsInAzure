@@ -1,5 +1,4 @@
-﻿using CqrsInAzure.Candidates.Services;
-using CqrsInAzure.Categories.Models;
+﻿using CqrsInAzure.Categories.Models;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
@@ -22,7 +21,7 @@ namespace CqrsInAzure.Categories.Storage
 
         public async Task<IEnumerable<Category>> GetAllAsync()
         {
-            var categories = await storage.ListAllFilesAsync();
+            var categories = await storage.GetAllAsync();
 
             var deserializeCategories = categories
                 .Select(async s => await DeserilizeCategoryAsync(s))
@@ -36,8 +35,13 @@ namespace CqrsInAzure.Categories.Storage
             return await this.storage.IsEmptyAsync();
         }
 
-        public Task AddAsync(Category category)
+        public Task<string> AddAsync(Category category)
         {
+            if (category.Id == null)
+            {
+                category.Id = Guid.NewGuid().ToString();
+            }
+
             var stream = Utils.SerializeToStream(category);
             return this.storage.UploadFileAsync(stream, category.Name);
         }
@@ -54,11 +58,37 @@ namespace CqrsInAzure.Categories.Storage
             }
         }
 
-        public async Task<Category> GetAsync(string id)
+        public async Task<Category> GetAsync(string name)
         {
-            var category = (await GetAllAsync()).SingleOrDefault(c => c.Id == id);
+            var category = this.storage.Get(name);
 
-            return category;
+            var deserializedCategory = await DeserilizeCategoryAsync(category);
+
+            return deserializedCategory;
+        }
+
+        public async Task DeleteAsync(string name)
+        {
+            await this.storage.DeleteFileAsync(name);
+        }
+
+        public async Task<string> UpdateAsync(string name, Category category)
+        {
+            var blob = this.storage.Get(name);
+
+            if (!await blob.ExistsAsync())
+            {
+                throw new FileNotFoundException();
+            }
+
+            if (category.Id == null)
+            {
+                category.Id = Guid.NewGuid().ToString();
+            }
+
+            var stream = Utils.SerializeToStream(category);
+            return await this.storage.ReUploadFileAsync(blob, category.Name ?? name, stream);
+
         }
     }
 }

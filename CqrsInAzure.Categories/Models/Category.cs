@@ -11,5 +11,8 @@ namespace CqrsInAzure.Categories.Models
 
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
+
+        [JsonProperty(PropertyName = "sortOrder")]
+        public SortOrder SortOrder { get; set; }
     }
 }
