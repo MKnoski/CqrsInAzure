@@ -81,7 +81,7 @@ namespace CqrsInAzure.Candidates.Controllers
                 FirstName = candidate.FirstName,
                 LastName = candidate.LastName,
                 Address = candidate.Address,
-                CoursesAndCertifacates = candidate.CoursesAndCertifacates,
+                CoursesAndCertificates = candidate.CoursesAndCertificates,
                 Skills = candidate.Skills,
                 Education = candidate.Education,
                 Experience = candidate.Experience,

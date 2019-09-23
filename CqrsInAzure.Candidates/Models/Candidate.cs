@@ -25,8 +25,8 @@ namespace CqrsInAzure.Candidates.Models
         [JsonProperty(PropertyName = "cvId")]
         public string CvId { get; set; }
 
-        [JsonProperty(PropertyName = "courseAndCertifacate")]
-        public CourseAndCertifacate[] CoursesAndCertifacates { get; set; }
+        [JsonProperty(PropertyName = "coursesAndCertificates")]
+        public CourseAndCertificate[] CoursesAndCertificates { get; set; }
 
         [JsonProperty(PropertyName = "experiences")]
         public Experience[] Experience { get; set; }

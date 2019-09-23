@@ -19,7 +19,7 @@ namespace CqrsInAzure.Candidates.ViewModels
 
         public string CvLink { get; set; }
 
-        public CourseAndCertifacate[] CoursesAndCertifacates { get; set; }
+        public CourseAndCertificate[] CoursesAndCertificates { get; set; }
 
         public Experience[] Experience { get; set; }
 

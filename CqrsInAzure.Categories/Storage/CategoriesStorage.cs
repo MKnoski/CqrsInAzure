@@ -24,7 +24,7 @@ namespace CqrsInAzure.Categories.Storage
             var categories = await storage.GetAllAsync();
 
             var deserializeCategories = categories
-                .Select(async s => await DeserilizeCategoryAsync(s))
+                .Select(async s => await DeserializeCategoryAsync(s))
                 .Select(t => t.Result);
 
             return deserializeCategories;
@@ -46,7 +46,7 @@ namespace CqrsInAzure.Categories.Storage
             return this.storage.UploadFileAsync(stream, category.Name);
         }
 
-        private async Task<Category> DeserilizeCategoryAsync(CloudBlockBlob blob)
+        private async Task<Category> DeserializeCategoryAsync(CloudBlockBlob blob)
         {
             using (MemoryStream memstream = new MemoryStream())
             {
@@ -62,7 +62,7 @@ namespace CqrsInAzure.Categories.Storage
         {
             var category = this.storage.Get(name);
 
-            var deserializedCategory = await DeserilizeCategoryAsync(category);
+            var deserializedCategory = await DeserializeCategoryAsync(category);
 
             return deserializedCategory;
         }

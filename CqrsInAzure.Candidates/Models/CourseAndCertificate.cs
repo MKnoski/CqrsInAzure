@@ -3,7 +3,7 @@ using System;
 
 namespace CqrsInAzure.Candidates.Models
 {
-    public class CourseAndCertifacate
+    public class CourseAndCertificate
     {
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
