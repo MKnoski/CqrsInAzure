@@ -12,7 +12,13 @@ namespace CqrsInAzure.Search.Clients
     {
         private const string SearchServiceName = "cqrs-in-azure";
         private const string IndexName = "candidates-index";
+        private const string IndexerName = "candidates-indexer";
         private const string AdminApiKey = "4F1E9367685862FF7C26F213BED28D2C";
+
+        private const string CosmosDBConnectionString = "https://cqrs-in-azure.documents.azure.com";
+        private const string CosmosDBDatabaseName = "cqrs-in-azure";
+        private const string CollectionName = "Candidates";
+        protected readonly string AuthKey = "6W5mEPbFOpv1CSvBHOwcgPJdxtip0CEwqPvjZ79ydffwFYOkHcHZrKbzLdFJRCLXThJUI8otQyJKk1HRWSozHw==";
 
         private readonly SearchServiceClient searchClient;
         private readonly ISearchIndexClient indexClient;
@@ -22,25 +28,56 @@ namespace CqrsInAzure.Search.Clients
             this.searchClient = new SearchServiceClient(SearchServiceName, new SearchCredentials(AdminApiKey));
             this.indexClient = this.searchClient.Indexes.GetClient(IndexName);
 
-            CreateIndexIfNotExists();
+            CreateIndexIfNotExists().Wait();
+            CreateIndexerIfNotExists().Wait();
         }
 
-        public void CreateIndexIfNotExists()
+        public async Task CreateIndexIfNotExists()
         {
-            if (this.searchClient.Indexes.Exists(IndexName))
+            if (await this.searchClient.Indexes.ExistsAsync(IndexName))
             {
                 return;
             }
 
             try
             {
-                var definition = new Index
+                var index = new Index
                 {
                     Name = IndexName,
                     Fields = FieldBuilder.BuildForType<Candidate>()
                 };
-                this.searchClient.Indexes.Create(definition);
+                await this.searchClient.Indexes.CreateAsync(index);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
 
+        public async Task CreateIndexerIfNotExists()
+        {
+            if (await this.searchClient.Indexers.ExistsAsync(IndexerName))
+            {
+                return;
+            }
+
+            try
+            {
+                var cosmosDbConnectionString = $"AccountEndpoint={CosmosDBConnectionString};AccountKey={AuthKey};Database={CosmosDBDatabaseName}";
+
+                DataSource cosmosDbDataSource = DataSource.CosmosDb(
+                    name: CosmosDBDatabaseName,
+                    cosmosDbConnectionString: cosmosDbConnectionString,
+                    collectionName: CollectionName);
+
+                await this.searchClient.DataSources.CreateOrUpdateAsync(cosmosDbDataSource);
+
+                Indexer cosmosDbIndexer = new Indexer(
+                    name: IndexerName,
+                    dataSourceName: cosmosDbDataSource.Name,
+                    targetIndexName: IndexName,
+                    schedule: new IndexingSchedule(TimeSpan.FromDays(1)));
+                await this.searchClient.Indexers.CreateOrUpdateAsync(cosmosDbIndexer);
             }
             catch (Exception e)
             {

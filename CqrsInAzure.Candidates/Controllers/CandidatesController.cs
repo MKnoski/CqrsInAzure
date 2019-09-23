@@ -14,15 +14,15 @@ namespace CqrsInAzure.Candidates.Controllers
     [ApiController]
     public class CandidatesController : ControllerBase
     {
-        private readonly CandidatesRepository repository;
-        private readonly CvStorage cvStorage;
-        private readonly PhotosStorage photosStorage;
+        private readonly ICandidatesRepository repository;
+        private readonly ICvStorage cvStorage;
+        private readonly IPhotosStorage photosStorage;
 
-        public CandidatesController()
+        public CandidatesController(ICandidatesRepository repository, ICvStorage cvStorage, IPhotosStorage photosStorage)
         {
-            this.repository = new CandidatesRepository();
-            this.cvStorage = new CvStorage();
-            this.photosStorage = new PhotosStorage();
+            this.repository = repository;
+            this.cvStorage = cvStorage;
+            this.photosStorage = photosStorage;
         }
 
         [HttpGet]
@@ -49,9 +49,9 @@ namespace CqrsInAzure.Candidates.Controllers
         [HttpPost]
         public async Task<string> Post([FromBody] Candidate candidate)
         {
-            var document = await this.repository.CreateItemAsync(candidate);
+            var id = await this.repository.CreateItemAsync(candidate);
 
-            return $"{document.Id}/{candidate.CategoryName}";
+            return $"{id}/{candidate.CategoryName}";
         }
 
         [HttpPut("{id}/{partitionKey}")]

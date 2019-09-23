@@ -16,8 +16,8 @@ namespace CqrsInAzure.Candidates.Repositories
     {
         protected readonly DocumentClient Client;
 
-        protected readonly string CollectionId = "";
-        protected readonly string PartitionKeyPath = "";
+        protected readonly string CollectionId;
+        protected readonly string PartitionKeyPath;
 
         // move to settings
         protected readonly string DatabaseId = "cqrs-in-azure";
@@ -81,16 +81,18 @@ namespace CqrsInAzure.Candidates.Repositories
             return results;
         }
 
-        public async Task<Document> CreateItemAsync(T item)
+        public async Task<string> CreateItemAsync(T item)
         {
-            return await Client.CreateDocumentAsync(
+            var document = await Client.CreateDocumentAsync(
                 UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
                 item);
+
+            return document.Resource.Id;
         }
 
-        public async Task<Document> UpdateItemAsync(string id, string partitionKey, T item)
+        public async Task UpdateItemAsync(string id, string partitionKey, T item)
         {
-            return await Client.ReplaceDocumentAsync(
+             await Client.ReplaceDocumentAsync(
                 UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
                 item,
                 new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });

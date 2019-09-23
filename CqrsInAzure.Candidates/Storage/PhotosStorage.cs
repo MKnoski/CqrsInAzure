@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace CqrsInAzure.Candidates.Storage
 {
-    public class PhotosStorage
+    public class PhotosStorage : IPhotosStorage
     {
-        private Storage storage;
+        private readonly Storage storage;
 
         private static readonly string ContainerName = "photos";
 

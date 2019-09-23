@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using CqrsInAzure.Candidates.Repositories;
+using CqrsInAzure.Candidates.Storage;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +20,7 @@ namespace CqrsInAzure.Candidates
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            RegisterServices(services);
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "CqrsInAzure.Candidates", Version = "v1" }); });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
@@ -44,6 +47,13 @@ namespace CqrsInAzure.Candidates
                     c.RoutePrefix = "docs";
                 });
             app.UseMvc();
+        }
+
+        private static void RegisterServices(IServiceCollection services)
+        {
+            services.AddSingleton<ICandidatesRepository, CandidatesRepository>();
+            services.AddSingleton<ICvStorage, CvStorage>();
+            services.AddSingleton<IPhotosStorage, PhotosStorage>();
         }
     }
 }

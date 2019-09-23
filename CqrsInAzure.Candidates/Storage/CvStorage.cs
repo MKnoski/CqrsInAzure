@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace CqrsInAzure.Candidates.Storage
 {
-    public class CvStorage
+    public class CvStorage : ICvStorage
     {
-        private Storage storage;
+        private readonly Storage storage;
 
         private static readonly string ContainerName = "cvs";
 

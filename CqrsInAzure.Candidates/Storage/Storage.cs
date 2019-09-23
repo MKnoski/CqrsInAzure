@@ -26,12 +26,12 @@ namespace CqrsInAzure.Candidates.Storage
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             container = blobClient.GetContainerReference(containerName);
+
+            container.CreateIfNotExistsAsync().Wait();
         }
 
         public async Task<string> UploadFileAsync(Stream fileStream, string name, string contentType = "")
         {
-            await container.CreateIfNotExistsAsync();
-
             CloudBlockBlob blob = Get(name);
 
             fileStream.Position = 0;

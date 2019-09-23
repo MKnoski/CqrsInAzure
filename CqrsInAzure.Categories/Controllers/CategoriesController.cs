@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CqrsInAzure.Categories.Models;
 using CqrsInAzure.Categories.Storage;
@@ -12,7 +10,7 @@ namespace CqrsInAzure.Categories.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private ICategoriesStorage storage;
+        private readonly ICategoriesStorage storage;
 
         public CategoriesController(ICategoriesStorage storage)
         {
