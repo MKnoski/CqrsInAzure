@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using CqrsInAzure.Candidates.Models;
+﻿using CqrsInAzure.Candidates.Models;
 
 namespace CqrsInAzure.Candidates.Repositories
 {

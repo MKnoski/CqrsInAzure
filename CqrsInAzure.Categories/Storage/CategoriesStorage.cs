@@ -35,36 +35,25 @@ namespace CqrsInAzure.Categories.Storage
             return await this.storage.IsEmptyAsync();
         }
 
-        public Task<string> AddAsync(Category category)
+        public async Task<string> AddAsync(Category category)
         {
             if (category.Id == null)
             {
                 category.Id = Guid.NewGuid().ToString();
             }
 
-            var stream = Utils.SerializeToStream(category);
-            return this.storage.UploadFileAsync(stream, category.Name);
-        }
-
-        private async Task<Category> DeserializeCategoryAsync(CloudBlockBlob blob)
-        {
-            using (MemoryStream memstream = new MemoryStream())
+            using (var ms = new MemoryStream())
             {
-                await blob.DownloadToStreamAsync(memstream);
-
-                var category = Utils.DeserializeFromStream<Category>(memstream);
-
-                return category;
+                Utils.SerializeToJsonStream(ms, category);
+                return await this.storage.UploadFileAsync(ms, category.Name, "application/json");
             }
         }
 
         public async Task<Category> GetAsync(string name)
         {
-            var category = this.storage.Get(name);
+            var blob = this.storage.GetBlob(name);
 
-            var deserializedCategory = await DeserializeCategoryAsync(category);
-
-            return deserializedCategory;
+            return await DeserializeCategoryAsync(blob);
         }
 
         public async Task DeleteAsync(string name)
@@ -74,7 +63,7 @@ namespace CqrsInAzure.Categories.Storage
 
         public async Task<string> UpdateAsync(string name, Category category)
         {
-            var blob = this.storage.Get(name);
+            var blob = this.storage.GetBlob(name);
 
             if (!await blob.ExistsAsync())
             {
@@ -86,9 +75,19 @@ namespace CqrsInAzure.Categories.Storage
                 category.Id = Guid.NewGuid().ToString();
             }
 
-            var stream = Utils.SerializeToStream(category);
-            return await this.storage.ReUploadFileAsync(blob, category.Name ?? name, stream);
+            using (var ms = new MemoryStream())
+            {
+                Utils.SerializeToJsonStream(ms, category);
+                return await this.storage.ReUploadFileAsync(blob, category.Name ?? name, ms, "application/json");
+            }
+        }
 
+        private async Task<Category> DeserializeCategoryAsync(CloudBlockBlob blob)
+        {
+            var json = await blob.DownloadTextAsync();
+            var deserializedCategory = Newtonsoft.Json.JsonConvert.DeserializeObject<Category>(json);
+
+            return deserializedCategory;
         }
     }
 }

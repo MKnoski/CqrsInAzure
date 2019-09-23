@@ -1,29 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading.Tasks;
+﻿using System.IO;
+using Newtonsoft.Json;
 
 namespace CqrsInAzure.Categories
 {
     public static class Utils
     {
-        public static MemoryStream SerializeToStream(object o)
+        public static void SerializeToJsonStream(MemoryStream ms, object obj)
         {
-            MemoryStream stream = new MemoryStream();
-            IFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(stream, o);
-            return stream;
-        }
-
-        public static T DeserializeFromStream<T>(MemoryStream stream)
-        {
-            IFormatter formatter = new BinaryFormatter();
-            stream.Seek(0, SeekOrigin.Begin);
-            object o = formatter.Deserialize(stream);
-            return (T)o;
+            var json = JsonConvert.SerializeObject(obj);
+            StreamWriter writer = new StreamWriter(ms);
+            writer.Write(json);
+            writer.Flush();
+            ms.Position = 0;
         }
     }
 }

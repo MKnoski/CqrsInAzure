@@ -2,9 +2,7 @@
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CqrsInAzure.Candidates.Storage
@@ -46,14 +44,6 @@ namespace CqrsInAzure.Candidates.Storage
             return blob.Name;
         }
 
-        public async Task<string> ReUploadFileAsync(CloudBlockBlob oldBlob, string newName, Stream fileStream, string contentType = "")
-        {
-            var name = await UploadFileAsync(fileStream, newName, contentType);
-            await oldBlob.DeleteIfExistsAsync();
-
-            return name;
-        }
-
         public async Task DeleteFileAsync(string name)
         {
             CloudBlockBlob blob = Get(name);
@@ -67,23 +57,6 @@ namespace CqrsInAzure.Candidates.Storage
 
             return blob;
         }
-
-        public async Task<IEnumerable<CloudBlockBlob>> GetAllAsync()
-        {
-            BlobContinuationToken blobContinuationToken = null;
-            var results = await this.container.ListBlobsSegmentedAsync(null, blobContinuationToken);
-
-            return results.Results.Select(s => s as CloudBlockBlob);
-        }
-
-        public async Task<bool> IsEmptyAsync()
-        {
-            var files = await GetAllAsync();
-
-            return !files.Any();
-        }
-
-        #region Download files
 
         public string GetDownloadLink(string blobName)
         {
@@ -117,23 +90,5 @@ namespace CqrsInAzure.Candidates.Storage
 
             return byteArray;
         }
-
-        private async Task DownloadToFile(string name)
-        {
-            CloudBlockBlob blob = Get(name);
-
-            string localPath = Path.GetTempFileName();
-
-            await blob.DownloadToFileAsync(localPath, FileMode.Create);
-        }
-
-        private async Task<string> GetBlobName(string uri)
-        {
-            var blob = await container.ServiceClient.GetBlobReferenceFromServerAsync(new Uri(uri));
-
-            return blob.Name;
-        }
-
-        #endregion
     }
 }

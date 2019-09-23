@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using CqrsInAzure.Candidates.Models;
-using Microsoft.Azure.Documents;
 
 namespace CqrsInAzure.Candidates.Repositories
 {
