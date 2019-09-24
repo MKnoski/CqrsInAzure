@@ -8,11 +8,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
+using CqrsInAzure.Candidates.Models;
 
 namespace CqrsInAzure.Candidates.Repositories
 {
     public abstract class DocumentDbRepository<T>
-        where T : class
+        where T : Deletable
     {
         protected readonly DocumentClient Client;
 
@@ -47,11 +48,11 @@ namespace CqrsInAzure.Candidates.Repositories
         {
             try
             {
-                var document =
-                    await Client.ReadDocumentAsync<T>(
+                var document = await Client.ReadDocumentAsync<T>(
                         UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
-                        new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
-                return document.Document;
+                        new RequestOptions { PartitionKey = new PartitionKey(partitionKey), });
+
+                return document.Document.IsDeleted ? null : document.Document;
             }
             catch (DocumentClientException e)
             {
@@ -70,6 +71,7 @@ namespace CqrsInAzure.Candidates.Repositories
                     UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
                     new FeedOptions { MaxItemCount = -1, EnableCrossPartitionQuery = true })
                 .Where(predicate)
+                .Where(i => i.IsDeleted != true)
                 .AsDocumentQuery();
 
             var results = new List<T>();
@@ -96,6 +98,21 @@ namespace CqrsInAzure.Candidates.Repositories
                 UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
                 item,
                 new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
+        }
+
+        public async Task DeleteSoftItemAsync(string id, string partitionKey)
+        {
+            var item = await GetItemAsync(id, partitionKey);
+
+            if (item is Deletable deletable)
+            {
+                deletable.IsDeleted = true;
+
+                await Client.ReplaceDocumentAsync(
+                    UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
+                    deletable,
+                    new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
+            }
         }
 
         public async Task DeleteItemAsync(string id, string partitionKey)

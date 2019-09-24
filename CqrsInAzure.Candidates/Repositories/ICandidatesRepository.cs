@@ -17,5 +17,7 @@ namespace CqrsInAzure.Candidates.Repositories
         Task UpdateItemAsync(string id, string partitionKey, Candidate item);
 
         Task DeleteItemAsync(string id, string partitionKey);
+
+        Task DeleteSoftItemAsync(string id, string partitionKey);
     }
 }

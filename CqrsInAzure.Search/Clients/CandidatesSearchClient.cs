@@ -70,6 +70,8 @@ namespace CqrsInAzure.Search.Clients
                     cosmosDbConnectionString: cosmosDbConnectionString,
                     collectionName: CollectionName);
 
+                cosmosDbDataSource.DataDeletionDetectionPolicy = new SoftDeleteColumnDeletionDetectionPolicy("isDeleted", true);
+                
                 await this.searchClient.DataSources.CreateOrUpdateAsync(cosmosDbDataSource);
 
                 Indexer cosmosDbIndexer = new Indexer(
@@ -77,6 +79,7 @@ namespace CqrsInAzure.Search.Clients
                     dataSourceName: cosmosDbDataSource.Name,
                     targetIndexName: IndexName,
                     schedule: new IndexingSchedule(TimeSpan.FromDays(1)));
+
                 await this.searchClient.Indexers.CreateOrUpdateAsync(cosmosDbIndexer);
             }
             catch (Exception e)

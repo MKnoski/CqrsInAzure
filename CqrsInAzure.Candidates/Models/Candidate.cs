@@ -2,7 +2,7 @@
 
 namespace CqrsInAzure.Candidates.Models
 {
-    public class Candidate
+    public class Candidate : Deletable
     {
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }

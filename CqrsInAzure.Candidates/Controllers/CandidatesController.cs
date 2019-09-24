@@ -65,7 +65,7 @@ namespace CqrsInAzure.Candidates.Controllers
         [HttpDelete("{id}/{partitionKey}")]
         public async Task Delete(string id, string partitionKey)
         {
-            await this.repository.DeleteItemAsync(id, partitionKey);
+            await this.repository.DeleteSoftItemAsync(id, partitionKey);
         }
 
         private CandidateViewModel Map(Candidate candidate)
