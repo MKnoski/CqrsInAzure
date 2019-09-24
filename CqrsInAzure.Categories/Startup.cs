@@ -20,7 +20,7 @@ namespace CqrsInAzure.Categories
         public void ConfigureServices(IServiceCollection services)
         {
             RegisterServices(services);
-            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "CqrsInAzure.Candidates", Version = "v1" }); });
+            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "CqrsInAzure.Categories", Version = "v1" }); });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 

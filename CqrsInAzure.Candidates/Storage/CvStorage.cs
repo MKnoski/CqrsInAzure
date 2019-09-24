@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CqrsInAzure.Candidates.Storage
 {
@@ -27,7 +28,7 @@ namespace CqrsInAzure.Candidates.Storage
             return this.storage.GetDownloadLink(id);
         }
 
-        public async Task<byte[]> GetAsync(string id)
+        public async Task<FileContentResult> GetAsync(string id)
         {
             return await this.storage.DownloadFileAsync(id);
         }

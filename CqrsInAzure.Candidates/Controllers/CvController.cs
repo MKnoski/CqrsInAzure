@@ -12,13 +12,13 @@ namespace CqrsInAzure.Candidates.Controllers
     [Route("api/candidates/{candidateId}/{partitionKey}/[controller]")]
     public class CvController : Controller
     {
-        private readonly CandidatesRepository repository;
-        private readonly CvStorage cvStorage;
+        private readonly ICandidatesRepository repository;
+        private readonly ICvStorage cvStorage;
 
-        public CvController()
+        public CvController(ICandidatesRepository repository, ICvStorage cvStorage)
         {
-            this.repository = new CandidatesRepository();
-            this.cvStorage = new CvStorage();
+            this.repository = repository;
+            this.cvStorage = cvStorage;
         }
 
         [HttpGet()]
@@ -26,8 +26,8 @@ namespace CqrsInAzure.Candidates.Controllers
         {
             var candidate = await this.repository.GetItemAsync(candidateId, partitionKey);
 
-            if (candidate.CvId == null)
-                return BadRequest("CV does not exist");
+            if (candidate?.CvId == null)
+                return null;
 
             return await this.cvStorage.GetAsync(candidate.CvId);
         }
@@ -66,8 +66,8 @@ namespace CqrsInAzure.Candidates.Controllers
         {
             var candidate = await this.repository.GetItemAsync(candidateId, partitionKey);
 
-            if (candidate.CvId == null)
-                return BadRequest("CV does not exist");
+            if (candidate?.CvId == null)
+                return NoContent();
 
             await this.cvStorage.DeleteAsync(candidate.CvId);
 

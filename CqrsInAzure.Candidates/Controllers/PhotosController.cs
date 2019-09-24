@@ -12,13 +12,13 @@ namespace CqrsInAzure.Candidates.Controllers
     [Route("api/candidates/{candidateId}/{partitionKey}/[controller]")]
     public class PhotosController : Controller
     {
-        private readonly CandidatesRepository repository;
-        private readonly PhotosStorage photosStorage;
+        private readonly ICandidatesRepository repository;
+        private readonly IPhotosStorage photosStorage;
 
-        public PhotosController()
+        public PhotosController(ICandidatesRepository repository, IPhotosStorage photosStorage)
         {
-            this.repository = new CandidatesRepository();
-            this.photosStorage = new PhotosStorage();
+            this.repository = repository;
+            this.photosStorage = photosStorage;
         }
 
         [HttpGet()]
@@ -26,8 +26,8 @@ namespace CqrsInAzure.Candidates.Controllers
         {
             var candidate = await this.repository.GetItemAsync(candidateId, partitionKey);
 
-            if (candidate.PhotoId == null)
-                return BadRequest("Photo does not exist");
+            if (candidate?.PhotoId == null)
+                return null;
 
             return await this.photosStorage.GetAsync(candidate.PhotoId);
         }
@@ -66,8 +66,8 @@ namespace CqrsInAzure.Candidates.Controllers
         {
             var candidate = await this.repository.GetItemAsync(candidateId, partitionKey);
 
-            if (candidate.PhotoId == null)
-                return BadRequest("Photo does not exist");
+            if (candidate?.PhotoId == null)
+                return NoContent();
 
             await this.photosStorage.DeleteAsync(candidate.PhotoId);
 

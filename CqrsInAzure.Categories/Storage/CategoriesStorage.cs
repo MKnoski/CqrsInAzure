@@ -53,6 +53,11 @@ namespace CqrsInAzure.Categories.Storage
         {
             var blob = this.storage.GetBlob(name);
 
+            if (!await blob.ExistsAsync())
+            {
+                return null;
+            }
+
             return await DeserializeCategoryAsync(blob);
         }
 

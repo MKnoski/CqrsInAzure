@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CqrsInAzure.Candidates.Storage
 {
@@ -78,7 +79,7 @@ namespace CqrsInAzure.Candidates.Storage
             return blob.Uri.AbsoluteUri + sasToken;
         }
 
-        public async Task<byte[]> DownloadFileAsync(string name)
+        public async Task<FileContentResult> DownloadFileAsync(string name)
         {
             CloudBlockBlob blob = Get(name);
 
@@ -87,8 +88,10 @@ namespace CqrsInAzure.Candidates.Storage
             byte[] byteArray = new Byte[fileByteLength];
 
             await blob.DownloadToByteArrayAsync(byteArray, 0);
+            
+            FileContentResult result = new FileContentResult(byteArray, blob.Properties.ContentType);
 
-            return byteArray;
+            return result;
         }
     }
 }
