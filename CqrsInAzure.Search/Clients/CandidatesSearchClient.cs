@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CqrsInAzure.Search.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
+using Index = Microsoft.Azure.Search.Models.Index;
 
 namespace CqrsInAzure.Search.Clients
 {
