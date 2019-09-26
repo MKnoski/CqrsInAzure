@@ -1,4 +1,5 @@
-﻿using CqrsInAzure.Categories.Storage;
+﻿using CqrsInAzure.Categories.EventGrid;
+using CqrsInAzure.Categories.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -56,6 +57,7 @@ namespace CqrsInAzure.Categories
         private static void RegisterServices(IServiceCollection services)
         {
             services.AddSingleton<ICategoriesStorage, CategoriesStorage>();
+            services.AddSingleton<IEventPublisher, EventPublisher>();
         }
     }
 }

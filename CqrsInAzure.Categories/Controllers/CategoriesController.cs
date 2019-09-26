@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CqrsInAzure.Categories.EventGrid;
+using CqrsInAzure.Categories.EventGrid.Models;
 using CqrsInAzure.Categories.Models;
 using CqrsInAzure.Categories.Storage;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +13,12 @@ namespace CqrsInAzure.Categories.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoriesStorage storage;
+        private readonly IEventPublisher eventPublisher;
 
-        public CategoriesController(ICategoriesStorage storage)
+        public CategoriesController(ICategoriesStorage storage, IEventPublisher eventPublisher)
         {
             this.storage = storage;
+            this.eventPublisher = eventPublisher;
         }
 
         [HttpGet]
@@ -38,9 +42,14 @@ namespace CqrsInAzure.Categories.Controllers
         }
 
         [HttpPut("{name}")]
-        public Task<string> Put(string name, [FromBody] Category category)
+        public async Task<string> Put(string name, [FromBody] Category category)
         {
-            return this.storage.UpdateAsync(name, category);
+            var newName = await this.storage.UpdateAsync(name, category);
+
+            await this.eventPublisher.PublishCategoryUpdatedEventAsync(new CategoryUpdatedEventData { OldCategoryName = name, NewCategoryName = newName }
+            );
+
+            return newName;
         }
 
         [HttpDelete("{name}")]

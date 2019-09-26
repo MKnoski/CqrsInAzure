@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CqrsInAzure.Candidates.Models;
@@ -6,6 +7,9 @@ using CqrsInAzure.Candidates.Repositories;
 using CqrsInAzure.Candidates.Storage;
 using CqrsInAzure.Candidates.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.EventGrid.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CqrsInAzure.Candidates.Controllers
 {
@@ -16,6 +20,9 @@ namespace CqrsInAzure.Candidates.Controllers
         private readonly ICandidatesRepository repository;
         private readonly ICvStorage cvStorage;
         private readonly IPhotosStorage photosStorage;
+
+        private const string SubscriptionValidationEvent = "Microsoft.EventGrid.SubscriptionValidationEvent";
+        private const string CategoryUpdatedEventSubject = "cqrsInAzure/categories/categoryUpdated";
 
         public CandidatesController(ICandidatesRepository repository, ICvStorage cvStorage, IPhotosStorage photosStorage)
         {
@@ -76,6 +83,48 @@ namespace CqrsInAzure.Candidates.Controllers
             await this.photosStorage.DeleteAsync(candidate.PhotoId);
 
             await this.repository.DeleteSoftItemAsync(id, partitionKey);
+        }
+
+        // move to another controller
+        [HttpPost("updateCategory")]
+        public IActionResult UpdateCategory([FromBody] object eventData)
+        {
+            var eventGridEvent = JsonConvert.DeserializeObject<EventGridEvent[]>(eventData.ToString())
+                .FirstOrDefault();
+            var data = eventGridEvent.Data as JObject;
+
+            // move to attribute
+            if (IsSubscriptionValidationEvent(eventGridEvent))
+            {
+                return HandleSubscriptionValidation(data.ToObject<SubscriptionValidationEventData>());
+            }
+
+            if (IsCategoryUpdatedEvent(eventGridEvent))
+            {
+                var categoryUpdatedEventData = data.ToObject<CategoryUpdatedEventData>() as CategoryUpdatedEventData;
+            }
+
+            return Ok();
+        }
+
+        private static bool IsCategoryUpdatedEvent(EventGridEvent eventGridEvent)
+        {
+            return string.Equals(eventGridEvent.Subject, CategoryUpdatedEventSubject, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsSubscriptionValidationEvent(EventGridEvent eventGridEvent)
+        {
+            return string.Equals(eventGridEvent.EventType, SubscriptionValidationEvent, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private IActionResult HandleSubscriptionValidation(SubscriptionValidationEventData eventData)
+        {
+            var responseData = new SubscriptionValidationResponse
+            {
+                ValidationResponse = eventData.ValidationCode
+            };
+
+            return Ok(responseData);
         }
 
         private CandidateViewModel Map(Candidate candidate)
