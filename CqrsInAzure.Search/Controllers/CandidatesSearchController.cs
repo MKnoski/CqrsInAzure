@@ -37,12 +37,6 @@ namespace CqrsInAzure.Search.Controllers
             this.candidatesSearchClient.InsertOrUpdateCandidates(candidate.ToList());
         }
 
-        [HttpPost("activateIndexer")]
-        public void ActivateIndexer()
-        {
-            
-        }
-
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {

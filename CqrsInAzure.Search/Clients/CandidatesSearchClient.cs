@@ -16,8 +16,8 @@ namespace CqrsInAzure.Search.Clients
         private const string IndexerName = "candidates-indexer";
         private const string AdminApiKey = "4F1E9367685862FF7C26F213BED28D2C";
 
-        private const string CosmosDBConnectionString = "https://cqrs-in-azure.documents.azure.com";
-        private const string CosmosDBDatabaseName = "cqrs-in-azure";
+        private const string CosmosDbConnectionString = "https://cqrs-in-azure.documents.azure.com";
+        private const string CosmosDbDatabaseName = "cqrs-in-azure";
         private const string CollectionName = "Candidates";
         protected readonly string AuthKey = "6W5mEPbFOpv1CSvBHOwcgPJdxtip0CEwqPvjZ79ydffwFYOkHcHZrKbzLdFJRCLXThJUI8otQyJKk1HRWSozHw==";
 
@@ -64,10 +64,10 @@ namespace CqrsInAzure.Search.Clients
 
             try
             {
-                var cosmosDbConnectionString = $"AccountEndpoint={CosmosDBConnectionString};AccountKey={AuthKey};Database={CosmosDBDatabaseName}";
+                var cosmosDbConnectionString = $"AccountEndpoint={CosmosDbConnectionString};AccountKey={AuthKey};Database={CosmosDbDatabaseName}";
 
                 DataSource cosmosDbDataSource = DataSource.CosmosDb(
-                    name: CosmosDBDatabaseName,
+                    name: CosmosDbDatabaseName,
                     cosmosDbConnectionString: cosmosDbConnectionString,
                     collectionName: CollectionName);
 
