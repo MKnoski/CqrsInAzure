@@ -54,8 +54,6 @@ namespace CqrsInAzure.Candidates.Controllers
             candidate.CategoryName = newCategoryName;
 
             await this.repository.CreateItemAsync(candidate);
-
-            //await this.repository.UpdateItemAsync(candidate.Id, categoryUpdatedEventData.OldCategoryName, candidate);
         }
 
         private static bool IsCategoryUpdatedEvent(EventGridEvent eventGridEvent)

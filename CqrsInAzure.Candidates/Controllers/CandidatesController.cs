@@ -6,7 +6,6 @@ using CqrsInAzure.Candidates.Repositories;
 using CqrsInAzure.Candidates.Storage;
 using CqrsInAzure.Candidates.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.EventGrid.Models;
 
 namespace CqrsInAzure.Candidates.Controllers
 {
@@ -49,6 +48,8 @@ namespace CqrsInAzure.Candidates.Controllers
         [HttpPost]
         public async Task<string> Post([FromBody] Candidate candidate)
         {
+            // Validate - category exists
+
             var id = await this.repository.CreateItemAsync(candidate);
 
             return $"{id}/{candidate.CategoryName}";
@@ -77,16 +78,6 @@ namespace CqrsInAzure.Candidates.Controllers
             await this.photosStorage.DeleteAsync(candidate.PhotoId);
 
             await this.repository.DeleteSoftItemAsync(id, partitionKey);
-        }
-
-        private IActionResult HandleSubscriptionValidation(SubscriptionValidationEventData eventData)
-        {
-            var responseData = new SubscriptionValidationResponse
-            {
-                ValidationResponse = eventData.ValidationCode
-            };
-
-            return Ok(responseData);
         }
 
         private CandidateViewModel Map(Candidate candidate)

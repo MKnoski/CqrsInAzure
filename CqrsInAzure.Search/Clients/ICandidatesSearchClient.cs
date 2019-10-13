@@ -14,12 +14,13 @@ namespace CqrsInAzure.Search.Clients
         void UpdateCandidates(List<Candidate> candidates);
         void DeleteCandidates(List<Candidate> candidates);
 
-        IList<SearchResult<Candidate>> SearchDocuments(
-            string searchText,
-            string filter,
-            int page,
-            int pageSize,
-            IList<string> orderBy,
-            IList<string> searchParameters);
+        Task<IEnumerable<SearchResult<Candidate>>> SearchDocumentsAsync(
+            string searchText = null,
+            string filter = null,
+            int? page = null,
+            int? pageSize = null,
+            IList<string> orderBy = null,
+            IList<string> searchParameters = null,
+            IList<string> searchFields = null);
     }
 }

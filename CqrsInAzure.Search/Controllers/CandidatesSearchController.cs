@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CqrsInAzure.Search.Clients;
 using CqrsInAzure.Search.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -18,15 +19,16 @@ namespace CqrsInAzure.Search.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Candidate>> Get(
+        public async Task<ActionResult<IEnumerable<Candidate>>> Search(
             [FromQuery] string searchText = null,
             [FromQuery] string filter = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] IList<string> orderBy = null,
-            [FromQuery] IList<string> searchParameters = null)
+            [FromQuery] IList<string> searchParameters = null,
+            [FromQuery] IList<string> searchFields = null)
         {
-            var searchResults = this.candidatesSearchClient.SearchDocuments(searchText, filter, page, pageSize, orderBy, searchParameters);
+            var searchResults = await this.candidatesSearchClient.SearchDocumentsAsync(searchText, filter, page, pageSize, orderBy, searchParameters, searchFields);
 
             return Ok(searchResults.Select(s => s.Document));
         }
@@ -35,11 +37,6 @@ namespace CqrsInAzure.Search.Controllers
         public void Post([FromBody] Candidate candidate)
         {
             this.candidatesSearchClient.InsertOrUpdateCandidates(candidate.ToList());
-        }
-
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
         }
 
         [HttpDelete("{id}")]

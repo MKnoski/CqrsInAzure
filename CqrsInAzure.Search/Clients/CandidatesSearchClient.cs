@@ -120,13 +120,14 @@ namespace CqrsInAzure.Search.Clients
             ExecuteBatch(batch);
         }
 
-        public IList<SearchResult<Candidate>> SearchDocuments(
-            string searchText,
-            string filter,
-            int page,
-            int pageSize,
-            IList<string> orderBy,
-            IList<string> searchParameters)
+        public async Task<IEnumerable<SearchResult<Candidate>>> SearchDocumentsAsync(
+            string searchText = null,
+            string filter = null,
+            int? page = null,
+            int? pageSize = null,
+            IList<string> orderBy = null,
+            IList<string> searchParameters = null,
+            IList<string> searchFields = null)
         {
             DocumentSearchResult<Candidate> results;
             try
@@ -139,10 +140,11 @@ namespace CqrsInAzure.Search.Clients
                         Skip = (page - 1) * pageSize,
                         OrderBy = orderBy,
                         //Facets = new[] { "CategoryName" },
-                        Filter = filter
+                        Filter = filter,
+                        SearchFields = searchFields
                     };
 
-                results = this.indexClient.Documents.Search<Candidate>(searchText, parameters);
+                results = await this.indexClient.Documents.SearchAsync<Candidate>(searchText, parameters);
             }
             catch (Exception e)
             {

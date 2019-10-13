@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 
-namespace CqrsInAzure.Candidates.Attributes
+namespace CqrsInAzure.Search.Attributes
 {
     public class SubscriptionValidationAttribute : ActionFilterAttribute
     {

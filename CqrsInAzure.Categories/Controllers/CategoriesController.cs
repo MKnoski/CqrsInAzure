@@ -13,9 +13,9 @@ namespace CqrsInAzure.Categories.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoriesStorage storage;
-        private readonly IEventPublisher eventPublisher;
+        private readonly CategoryUpdateEventPublisher eventPublisher;
 
-        public CategoriesController(ICategoriesStorage storage, IEventPublisher eventPublisher)
+        public CategoriesController(ICategoriesStorage storage, CategoryUpdateEventPublisher eventPublisher)
         {
             this.storage = storage;
             this.eventPublisher = eventPublisher;

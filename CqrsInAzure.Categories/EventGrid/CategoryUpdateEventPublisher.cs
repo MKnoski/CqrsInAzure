@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace CqrsInAzure.Categories.EventGrid
 {
-    public class EventPublisher : IEventPublisher
+    public class CategoryUpdateEventPublisher : ICategoryUpdateEventPublisher
     {
         private const string TopicAuthKey = "oNls2kbWv4Ql4sxb1uTK51OCG2of9PM4gd83aWL/Ixw=";
         private const string TopicEndpoint = "https://cqrsinnazure-categoryupdate.westeurope-1.eventgrid.azure.net/api/events";
         private readonly EventGridClient eventGridClient;
 
-        public EventPublisher()
+        public CategoryUpdateEventPublisher()
         {
             var credentials = new TopicCredentials(TopicAuthKey);
             this.eventGridClient = new EventGridClient(credentials);
