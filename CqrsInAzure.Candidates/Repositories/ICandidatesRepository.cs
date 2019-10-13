@@ -10,7 +10,7 @@ namespace CqrsInAzure.Candidates.Repositories
     {
         Task<Candidate> GetItemAsync(string id, string partitionKey);
 
-        Task<IEnumerable<Candidate>> GetItemsAsync(Expression<Func<Candidate, bool>> predicate);
+        Task<IEnumerable<Candidate>> GetItemsAsync(Expression<Func<Candidate, bool>> predicate, bool enableCrossPartitionQuery = true);
 
         Task<string> CreateItemAsync(Candidate item);
 

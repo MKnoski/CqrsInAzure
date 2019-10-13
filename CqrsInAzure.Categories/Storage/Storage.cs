@@ -47,7 +47,11 @@ namespace CqrsInAzure.Categories.Storage
         public async Task<string> ReUploadFileAsync(CloudBlockBlob oldBlob, string newName, Stream fileStream, string contentType = "")
         {
             var name = await UploadFileAsync(fileStream, newName, contentType);
-            await oldBlob.DeleteIfExistsAsync();
+
+            if (oldBlob.Name != newName)
+            {
+                await oldBlob.DeleteIfExistsAsync();
+            }
 
             return name;
         }

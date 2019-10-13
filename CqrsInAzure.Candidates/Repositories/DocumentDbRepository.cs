@@ -65,11 +65,15 @@ namespace CqrsInAzure.Candidates.Repositories
             }
         }
 
-        public async Task<IEnumerable<T>> GetItemsAsync(Expression<Func<T, bool>> predicate)
+        public async Task<IEnumerable<T>> GetItemsAsync(Expression<Func<T, bool>> predicate, bool enableCrossPartitionQuery = true)
         {
             var query = Client.CreateDocumentQuery<T>(
                     UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
-                    new FeedOptions { MaxItemCount = -1, EnableCrossPartitionQuery = true })
+                    new FeedOptions 
+                    { 
+                        MaxItemCount = -1, 
+                        EnableCrossPartitionQuery = enableCrossPartitionQuery 
+                    })
                 .Where(predicate)
                 .Where(i => i.IsDeleted != true)
                 .AsDocumentQuery();

@@ -46,8 +46,15 @@ namespace CqrsInAzure.Categories.Controllers
         {
             var newName = await this.storage.UpdateAsync(name, category);
 
-            await this.eventPublisher.PublishCategoryUpdatedEventAsync(new CategoryUpdatedEventData { OldCategoryName = name, NewCategoryName = newName }
-            );
+            if (name != newName)
+            {
+                await this.eventPublisher.PublishCategoryUpdatedEventAsync(
+                    new CategoryUpdatedEventData
+                    {
+                        OldCategoryName = name,
+                        NewCategoryName = newName
+                    });
+            }
 
             return newName;
         }

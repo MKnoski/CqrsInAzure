@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
+using CqrsInAzure.Candidates.Attributes;
 using CqrsInAzure.Candidates.Models;
+using CqrsInAzure.Candidates.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventGrid.Models;
 using Newtonsoft.Json;
@@ -8,13 +11,22 @@ using Newtonsoft.Json.Linq;
 
 namespace CqrsInAzure.Candidates.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class SyncController : ControllerBase
     {
-        private const string SubscriptionValidationEvent = "Microsoft.EventGrid.SubscriptionValidationEvent";
         private const string CategoryUpdatedEventSubject = "cqrsInAzure/categories/categoryUpdated";
 
+        private readonly ICandidatesRepository repository;
+
+        public SyncController(ICandidatesRepository repository)
+        {
+            this.repository = repository;
+        }
+
+        [SubscriptionValidation]
         [HttpPost("updateCategory")]
-        public IActionResult UpdateCategory([FromBody] object eventData)
+        public async Task<IActionResult> UpdateCategoryAsync([FromBody] object eventData)
         {
             var eventGridEvent = JsonConvert.DeserializeObject<EventGridEvent[]>(eventData.ToString()).FirstOrDefault();
 
@@ -25,38 +37,30 @@ namespace CqrsInAzure.Candidates.Controllers
             
             var data = eventGridEvent.Data as JObject;
 
-            // move to attribute
-            if (IsSubscriptionValidationEvent(eventGridEvent))
-            {
-                return HandleSubscriptionValidation(data.ToObject<SubscriptionValidationEventData>());
-            }
-
             if (IsCategoryUpdatedEvent(eventGridEvent))
             {
                 var categoryUpdatedEventData = data.ToObject<CategoryUpdatedEventData>() as CategoryUpdatedEventData;
+                var candidatesWithOldCategory = (await this.repository.GetItemsAsync(m => m.CategoryName == categoryUpdatedEventData.OldCategoryName, false)).ToList();
+                candidatesWithOldCategory.ForEach(async c => await UpdateCandidatesAsync(c, categoryUpdatedEventData.NewCategoryName));
             }
 
             return Ok();
         }
 
+        private async Task UpdateCandidatesAsync(Candidate candidate, string newCategoryName)
+        {
+            await this.repository.DeleteItemAsync(candidate.Id, candidate.CategoryName);
+
+            candidate.CategoryName = newCategoryName;
+
+            await this.repository.CreateItemAsync(candidate);
+
+            //await this.repository.UpdateItemAsync(candidate.Id, categoryUpdatedEventData.OldCategoryName, candidate);
+        }
+
         private static bool IsCategoryUpdatedEvent(EventGridEvent eventGridEvent)
         {
             return string.Equals(eventGridEvent.Subject, CategoryUpdatedEventSubject, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsSubscriptionValidationEvent(EventGridEvent eventGridEvent)
-        {
-            return string.Equals(eventGridEvent.EventType, SubscriptionValidationEvent, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private IActionResult HandleSubscriptionValidation(SubscriptionValidationEventData eventData)
-        {
-            var responseData = new SubscriptionValidationResponse
-            {
-                ValidationResponse = eventData.ValidationCode
-            };
-
-            return Ok(responseData);
         }
     }
 }

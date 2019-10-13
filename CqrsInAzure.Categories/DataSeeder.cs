@@ -23,19 +23,16 @@ namespace CqrsInAzure.Categories
         {
             new Category
             {
-                Id = Guid.NewGuid().ToString(),
                 Name = "Education",
                 SortOrder = SortOrder.Medium
             },
             new Category
             {
-                Id = Guid.NewGuid().ToString(),
                 Name = "SoftwareDevelopment",
                 SortOrder = SortOrder.High
             },
             new Category
             {
-                Id = Guid.NewGuid().ToString(),
                 Name = "RealEstate",
                 SortOrder = SortOrder.Low
             },

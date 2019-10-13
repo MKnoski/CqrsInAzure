@@ -36,12 +36,7 @@ namespace CqrsInAzure.Categories.Storage
         }
 
         public async Task<string> AddAsync(Category category)
-        {
-            if (category.Id == null)
-            {
-                category.Id = Guid.NewGuid().ToString();
-            }
-
+        { 
             using (var ms = new MemoryStream())
             {
                 Utils.SerializeToJsonStream(ms, category);
@@ -73,11 +68,6 @@ namespace CqrsInAzure.Categories.Storage
             if (!await blob.ExistsAsync())
             {
                 throw new FileNotFoundException();
-            }
-
-            if (category.Id == null)
-            {
-                category.Id = Guid.NewGuid().ToString();
             }
 
             using (var ms = new MemoryStream())
