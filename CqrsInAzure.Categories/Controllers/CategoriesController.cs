@@ -60,9 +60,17 @@ namespace CqrsInAzure.Categories.Controllers
         }
 
         [HttpDelete("{name}")]
-        public async void DeleteAsync(string name)
+        public async Task<IActionResult> DeleteAsync(string name)
         {
+            var category = await this.storage.GetAsync(name);
+
+            if (category.AssignedCandidates > 0)
+            {
+                return BadRequest("Category with assigned candidates cannot be deleted");
+            }
+
             await this.storage.DeleteAsync(name);
+            return Ok();
         }
     }
 }
