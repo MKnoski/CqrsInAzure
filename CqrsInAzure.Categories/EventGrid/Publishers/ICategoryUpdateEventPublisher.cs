@@ -1,10 +1,10 @@
 ﻿using CqrsInAzure.Categories.EventGrid.Models;
 using System.Threading.Tasks;
 
-namespace CqrsInAzure.Categories.EventGrid
+namespace CqrsInAzure.Categories.Publishers.EventGrid
 {
     public interface ICategoryUpdateEventPublisher
     {
-        Task PublishCategoryUpdatedEventAsync(CategoryUpdatedEventData eventData);
+        Task PublishAsync(CategoryUpdatedEventData eventData);
     }
 }

@@ -1,27 +1,28 @@
-﻿using CqrsInAzure.Categories.EventGrid.Models;
+﻿using CqrsInAzure.Candidates.EventGrid.Models;
+using CqrsInAzure.Candidates.Models;
 using Microsoft.Azure.EventGrid;
 using Microsoft.Azure.EventGrid.Models;
 using System;
 using System.Threading.Tasks;
 
-namespace CqrsInAzure.Categories.EventGrid
+namespace CqrsInAzure.Candidates.EventGrid.Publishers
 {
-    public class CategoryUpdateEventPublisher : ICategoryUpdateEventPublisher
+    public class CandidateCreatedEventPublisher : ICandidateCreatedEventPublisher
     {
-        private const string TopicAuthKey = "oNls2kbWv4Ql4sxb1uTK51OCG2of9PM4gd83aWL/Ixw=";
-        private const string TopicEndpoint = "https://cqrsinnazure-categoryupdate.westeurope-1.eventgrid.azure.net/api/events";
+        private const string TopicAuthKey = "y7JvGLIFsjjrHPB7bCkqt7WfpzB7dKzxGCgzRfpOztE=";
+        private const string TopicEndpoint = "https://cqrsinazure-candidatecreated.westeurope-1.eventgrid.azure.net/api/events";
         private readonly EventGridClient eventGridClient;
 
-        public CategoryUpdateEventPublisher()
+        public CandidateCreatedEventPublisher()
         {
             var credentials = new TopicCredentials(TopicAuthKey);
             this.eventGridClient = new EventGridClient(credentials);
         }
 
-        public async Task PublishCategoryUpdatedEventAsync(CategoryUpdatedEventData eventData)
+        public async Task PublishAsync(Candidate eventData)
         {
             var topicHostName = new Uri(TopicEndpoint).Host;
-            var eventSubject = "cqrsInAzure/categories/categoryUpdated";
+            var eventSubject = "cqrsInAzure/candidates/created";
 
             await this.eventGridClient.PublishEventsAsync(
                 topicHostName,

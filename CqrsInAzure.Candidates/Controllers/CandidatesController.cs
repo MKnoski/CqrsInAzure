@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CqrsInAzure.Candidates.EventGrid.Models;
+using CqrsInAzure.Candidates.EventGrid.Publishers;
 using CqrsInAzure.Candidates.Models;
 using CqrsInAzure.Candidates.Repositories;
 using CqrsInAzure.Candidates.Storage;
 using CqrsInAzure.Candidates.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CqrsInAzure.Candidates.Controllers
 {
@@ -16,16 +18,18 @@ namespace CqrsInAzure.Candidates.Controllers
         private readonly ICandidatesRepository repository;
         private readonly ICvStorage cvStorage;
         private readonly IPhotosStorage photosStorage;
+        private readonly ICandidateCreatedEventPublisher candidateCreatedEventPublisher;
 
-        public CandidatesController(ICandidatesRepository repository, ICvStorage cvStorage, IPhotosStorage photosStorage)
+        public CandidatesController(ICandidatesRepository repository, ICvStorage cvStorage, IPhotosStorage photosStorage, ICandidateCreatedEventPublisher candidateCreatedEventPublisher)
         {
             this.repository = repository;
             this.cvStorage = cvStorage;
             this.photosStorage = photosStorage;
+            this.candidateCreatedEventPublisher = candidateCreatedEventPublisher;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<CandidateViewModel>> Get()
+        public async Task<IEnumerable<CandidateViewModel>> GetAsync()
         {
             var candidates = await this.repository.GetItemsAsync(candidate => true);
 
@@ -33,7 +37,7 @@ namespace CqrsInAzure.Candidates.Controllers
         }
 
         [HttpGet("{id}/{partitionKey}", Name = "Get")]
-        public async Task<CandidateViewModel> Get(string id, string partitionKey)
+        public async Task<CandidateViewModel> GetAsync(string id, string partitionKey)
         {
             var candidate = await this.repository.GetItemAsync(id, partitionKey);
 
@@ -46,26 +50,34 @@ namespace CqrsInAzure.Candidates.Controllers
         }
 
         [HttpPost]
-        public async Task<string> Post([FromBody] Candidate candidate)
+        public async Task PostAsync([FromBody] Candidate candidate)
         {
             // Validate - category exists
+            await this.repository.CreateItemAsync(candidate);
 
-            var id = await this.repository.CreateItemAsync(candidate);
-
-            return $"{id}/{candidate.CategoryName}";
+            await this.candidateCreatedEventPublisher.PublishAsync(candidate);
         }
 
         [HttpPut("{id}/{partitionKey}")]
-        public async Task Put(string id, string partitionKey, [FromBody] Candidate candidate)
+        public async Task PutAsync(string id, string partitionKey, [FromBody] Candidate candidate)
         {
+            var newCategoryName = string.IsNullOrEmpty(candidate.CategoryName) ? partitionKey : candidate.CategoryName;
+
             candidate.Id = id;
             candidate.CategoryName = partitionKey;
 
-            await this.repository.UpdateItemAsync(id, partitionKey, candidate);
+            if (partitionKey != newCategoryName)
+            {
+                await this.repository.UpdateCandidateAsync(candidate, newCategoryName);
+            }
+            else
+            {
+                await this.repository.UpdateItemAsync(id, partitionKey, candidate);
+            }
         }
 
         [HttpDelete("{id}/{partitionKey}")]
-        public async Task Delete(string id, string partitionKey)
+        public async Task DeleteAsync(string id, string partitionKey)
         {
             var candidate = await this.repository.GetItemAsync(id, partitionKey);
 

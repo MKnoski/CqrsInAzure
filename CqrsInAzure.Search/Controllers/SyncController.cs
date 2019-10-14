@@ -35,7 +35,7 @@ namespace CqrsInAzure.Search.Controllers
             {
                 return BadRequest();
             }
-            
+
             var data = eventGridEvent.Data as JObject;
 
             if (IsCategoryUpdatedEvent(eventGridEvent))
@@ -45,7 +45,7 @@ namespace CqrsInAzure.Search.Controllers
                 var searchResults = await this.candidatesSearchClient.SearchDocumentsAsync(searchText: categoryUpdatedEventData.OldCategoryName, searchFields: new List<string> { nameof(Candidate.CategoryName) });
 
                 var candidates = searchResults.Select(s => s.Document).ToList();
-                
+
                 if (candidates.Count > 0)
                 {
                     candidates.ForEach(c => c.CategoryName = categoryUpdatedEventData.NewCategoryName);

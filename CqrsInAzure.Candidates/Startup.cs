@@ -1,4 +1,5 @@
-﻿using CqrsInAzure.Candidates.Repositories;
+﻿using CqrsInAzure.Candidates.EventGrid.Publishers;
+using CqrsInAzure.Candidates.Repositories;
 using CqrsInAzure.Candidates.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -58,6 +59,7 @@ namespace CqrsInAzure.Candidates
             services.AddSingleton<ICandidatesRepository, CandidatesRepository>();
             services.AddSingleton<ICvStorage, CvStorage>();
             services.AddSingleton<IPhotosStorage, PhotosStorage>();
+            services.AddSingleton<ICandidateCreatedEventPublisher, CandidateCreatedEventPublisher>();
         }
     }
 }

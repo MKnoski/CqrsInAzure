@@ -1,4 +1,4 @@
-﻿using CqrsInAzure.Categories.EventGrid;
+﻿using CqrsInAzure.Categories.Publishers.EventGrid;
 using CqrsInAzure.Categories.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -18,7 +18,6 @@ namespace CqrsInAzure.Categories
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             RegisterServices(services);
@@ -29,7 +28,6 @@ namespace CqrsInAzure.Categories
             });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -37,7 +35,6 @@ namespace CqrsInAzure.Categories
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
@@ -57,7 +54,7 @@ namespace CqrsInAzure.Categories
         private static void RegisterServices(IServiceCollection services)
         {
             services.AddSingleton<ICategoriesStorage, CategoriesStorage>();
-            services.AddSingleton<CategoryUpdateEventPublisher, CategoryUpdateEventPublisher>();
+            services.AddSingleton<ICategoryUpdateEventPublisher, CategoryUpdateEventPublisher>();
         }
     }
 }

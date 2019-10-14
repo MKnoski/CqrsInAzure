@@ -12,9 +12,11 @@ namespace CqrsInAzure.Candidates.Repositories
 
         Task<IEnumerable<Candidate>> GetItemsAsync(Expression<Func<Candidate, bool>> predicate, bool enableCrossPartitionQuery = true);
 
-        Task<string> CreateItemAsync(Candidate item);
+        Task CreateItemAsync(Candidate item);
 
         Task UpdateItemAsync(string id, string partitionKey, Candidate item);
+
+        Task UpdateCandidateAsync(Candidate candidate, string newCategoryName);
 
         Task DeleteItemAsync(string id, string partitionKey);
 

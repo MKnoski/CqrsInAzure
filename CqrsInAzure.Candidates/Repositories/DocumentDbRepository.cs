@@ -13,7 +13,7 @@ using CqrsInAzure.Candidates.Models;
 namespace CqrsInAzure.Candidates.Repositories
 {
     public abstract class DocumentDbRepository<T>
-        where T : Deletable
+        where T : Deletable, IIdentifiable
     {
         protected readonly DocumentClient Client;
 
@@ -22,6 +22,7 @@ namespace CqrsInAzure.Candidates.Repositories
 
         // move to settings
         protected readonly string DatabaseId = "cqrs-in-azure";
+
         protected readonly string Endpoint = "https://cqrs-in-azure.documents.azure.com:443/";
         protected readonly string AuthKey = "6W5mEPbFOpv1CSvBHOwcgPJdxtip0CEwqPvjZ79ydffwFYOkHcHZrKbzLdFJRCLXThJUI8otQyJKk1HRWSozHw==";
 
@@ -52,13 +53,13 @@ namespace CqrsInAzure.Candidates.Repositories
                         UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
                         new RequestOptions { PartitionKey = new PartitionKey(partitionKey), });
 
-                return document.Document.IsDeleted ? null : document.Document;
+                return document.Document.IsDeleted ? default : document.Document;
             }
             catch (DocumentClientException e)
             {
                 if (e.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return null;
+                    return default;
                 }
 
                 throw;
@@ -69,10 +70,10 @@ namespace CqrsInAzure.Candidates.Repositories
         {
             var query = Client.CreateDocumentQuery<T>(
                     UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
-                    new FeedOptions 
-                    { 
-                        MaxItemCount = -1, 
-                        EnableCrossPartitionQuery = enableCrossPartitionQuery 
+                    new FeedOptions
+                    {
+                        MaxItemCount = -1,
+                        EnableCrossPartitionQuery = enableCrossPartitionQuery
                     })
                 .Where(predicate)
                 .Where(i => i.IsDeleted != true)
@@ -87,21 +88,21 @@ namespace CqrsInAzure.Candidates.Repositories
             return results;
         }
 
-        public async Task<string> CreateItemAsync(T item)
+        public async Task CreateItemAsync(T item)
         {
             var document = await Client.CreateDocumentAsync(
                 UriFactory.CreateDocumentCollectionUri(DatabaseId, CollectionId),
                 item);
 
-            return document.Resource.Id;
+            item.Id = document.Resource.Id;
         }
 
         public async Task UpdateItemAsync(string id, string partitionKey, T item)
         {
-             await Client.ReplaceDocumentAsync(
-                UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
-                item,
-                new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
+            await Client.ReplaceDocumentAsync(
+               UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id),
+               item,
+               new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
         }
 
         public async Task DeleteSoftItemAsync(string id, string partitionKey)

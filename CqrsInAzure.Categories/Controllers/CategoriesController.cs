@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CqrsInAzure.Categories.EventGrid;
+using CqrsInAzure.Categories.Publishers.EventGrid;
 using CqrsInAzure.Categories.EventGrid.Models;
 using CqrsInAzure.Categories.Models;
 using CqrsInAzure.Categories.Storage;
@@ -13,9 +13,9 @@ namespace CqrsInAzure.Categories.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoriesStorage storage;
-        private readonly CategoryUpdateEventPublisher eventPublisher;
+        private readonly ICategoryUpdateEventPublisher eventPublisher;
 
-        public CategoriesController(ICategoriesStorage storage, CategoryUpdateEventPublisher eventPublisher)
+        public CategoriesController(ICategoriesStorage storage, ICategoryUpdateEventPublisher eventPublisher)
         {
             this.storage = storage;
             this.eventPublisher = eventPublisher;
@@ -32,7 +32,7 @@ namespace CqrsInAzure.Categories.Controllers
         [HttpGet("{name}")]
         public async Task<Category> GetAsync(string name)
         {
-            return await this.storage.GetAsync(name) ;
+            return await this.storage.GetAsync(name);
         }
 
         [HttpPost]
@@ -42,13 +42,13 @@ namespace CqrsInAzure.Categories.Controllers
         }
 
         [HttpPut("{name}")]
-        public async Task<string> Put(string name, [FromBody] Category category)
+        public async Task<string> PutAsync(string name, [FromBody] Category category)
         {
             var newName = await this.storage.UpdateAsync(name, category);
 
             if (name != newName)
             {
-                await this.eventPublisher.PublishCategoryUpdatedEventAsync(
+                await this.eventPublisher.PublishAsync(
                     new CategoryUpdatedEventData
                     {
                         OldCategoryName = name,

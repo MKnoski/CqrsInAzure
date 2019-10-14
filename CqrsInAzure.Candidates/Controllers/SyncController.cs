@@ -34,26 +34,17 @@ namespace CqrsInAzure.Candidates.Controllers
             {
                 return BadRequest();
             }
-            
+
             var data = eventGridEvent.Data as JObject;
 
             if (IsCategoryUpdatedEvent(eventGridEvent))
             {
                 var categoryUpdatedEventData = data.ToObject<CategoryUpdatedEventData>() as CategoryUpdatedEventData;
                 var candidatesWithOldCategory = (await this.repository.GetItemsAsync(m => m.CategoryName == categoryUpdatedEventData.OldCategoryName, false)).ToList();
-                candidatesWithOldCategory.ForEach(async c => await UpdateCandidatesAsync(c, categoryUpdatedEventData.NewCategoryName));
+                candidatesWithOldCategory.ForEach(async c => await this.repository.UpdateCandidateAsync(c, categoryUpdatedEventData.NewCategoryName));
             }
 
             return Ok();
-        }
-
-        private async Task UpdateCandidatesAsync(Candidate candidate, string newCategoryName)
-        {
-            await this.repository.DeleteItemAsync(candidate.Id, candidate.CategoryName);
-
-            candidate.CategoryName = newCategoryName;
-
-            await this.repository.CreateItemAsync(candidate);
         }
 
         private static bool IsCategoryUpdatedEvent(EventGridEvent eventGridEvent)

@@ -19,7 +19,7 @@ namespace CqrsInAzure.Search.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Candidate>>> Search(
+        public async Task<ActionResult<IEnumerable<Candidate>>> SearchAsync(
             [FromQuery] string searchText = null,
             [FromQuery] string filter = null,
             [FromQuery] int page = 1,
