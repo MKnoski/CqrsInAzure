@@ -59,7 +59,7 @@ namespace CqrsInAzure.Candidates
             services.AddSingleton<ICandidatesRepository, CandidatesRepository>();
             services.AddSingleton<ICvStorage, CvStorage>();
             services.AddSingleton<IPhotosStorage, PhotosStorage>();
-            services.AddSingleton<ICandidateCreatedEventPublisher, CandidateCreatedEventPublisher>();
+            services.AddSingleton<ICandidateEventPublisher, CandidateEventPublisher>();
         }
     }
 }

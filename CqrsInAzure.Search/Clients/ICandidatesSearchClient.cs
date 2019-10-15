@@ -8,11 +8,16 @@ namespace CqrsInAzure.Search.Clients
     public interface ICandidatesSearchClient
     {
         Task CreateIndexIfNotExists();
+
         Task CreateIndexerIfNotExists();
-        void InsertCandidates(List<Candidate> candidates);
-        void InsertOrUpdateCandidates(List<Candidate> candidates);
-        void UpdateCandidates(List<Candidate> candidates);
-        void DeleteCandidates(List<Candidate> candidates);
+
+        Task InsertCandidatesAsync(List<Candidate> candidates);
+
+        Task InsertOrUpdateCandidatesAsync(List<Candidate> candidates);
+
+        Task UpdateCandidatesAsync(List<Candidate> candidates);
+
+        Task DeleteCandidatesAsync(List<Candidate> candidates);
 
         Task<IEnumerable<SearchResult<Candidate>>> SearchDocumentsAsync(
             string searchText = null,

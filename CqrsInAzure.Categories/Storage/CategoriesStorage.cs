@@ -35,12 +35,12 @@ namespace CqrsInAzure.Categories.Storage
             return await this.storage.IsEmptyAsync();
         }
 
-        public async Task<string> AddAsync(Category category)
-        { 
+        public async Task AddAsync(Category category)
+        {
             using (var ms = new MemoryStream())
             {
                 Utils.SerializeToJsonStream(ms, category);
-                return await this.storage.UploadFileAsync(ms, category.Name, "application/json");
+                await this.storage.UploadFileAsync(ms, category.Name, "application/json");
             }
         }
 
@@ -61,7 +61,7 @@ namespace CqrsInAzure.Categories.Storage
             await this.storage.DeleteFileAsync(name);
         }
 
-        public async Task<string> UpdateAsync(string name, Category category)
+        public async Task UpdateAsync(string name, Category category)
         {
             var blob = this.storage.GetBlob(name);
 
@@ -73,7 +73,7 @@ namespace CqrsInAzure.Categories.Storage
             using (var ms = new MemoryStream())
             {
                 Utils.SerializeToJsonStream(ms, category);
-                return await this.storage.ReUploadFileAsync(blob, category.Name ?? name, ms, "application/json");
+                await this.storage.ReUploadFileAsync(blob, category.Name ?? name, ms, "application/json");
             }
         }
 

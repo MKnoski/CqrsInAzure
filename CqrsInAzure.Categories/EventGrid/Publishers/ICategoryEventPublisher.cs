@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 namespace CqrsInAzure.Categories.Publishers.EventGrid
 {
-    public interface ICategoryUpdateEventPublisher
+    public interface ICategoryEventPublisher
     {
-        Task PublishAsync(CategoryUpdatedEventData eventData);
+        Task PublishAsync(string eventSubject, object eventData);
     }
 }

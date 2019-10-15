@@ -105,6 +105,13 @@ namespace CqrsInAzure.Candidates.Repositories
                new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
         }
 
+        public async Task ReuploadItemAsync(string id, string partitionKey, T item)
+        {
+            await this.DeleteItemAsync(id, partitionKey);
+
+            await this.CreateItemAsync(item);
+        }
+
         public async Task DeleteSoftItemAsync(string id, string partitionKey)
         {
             var item = await GetItemAsync(id, partitionKey);

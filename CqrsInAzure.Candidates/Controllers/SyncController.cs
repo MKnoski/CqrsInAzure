@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CqrsInAzure.Candidates.Attributes;
+using CqrsInAzure.Candidates.EventGrid.Models;
 using CqrsInAzure.Candidates.Models;
 using CqrsInAzure.Candidates.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,7 @@ namespace CqrsInAzure.Candidates.Controllers
     [ApiController]
     public class SyncController : ControllerBase
     {
-        private const string CategoryUpdatedEventSubject = "cqrsInAzure/categories/categoryUpdated";
+        private const string CategoryUpdatedEventSubject = "cqrsInAzure/category/updated";
 
         private readonly ICandidatesRepository repository;
 
@@ -41,10 +42,20 @@ namespace CqrsInAzure.Candidates.Controllers
             {
                 var categoryUpdatedEventData = data.ToObject<CategoryUpdatedEventData>() as CategoryUpdatedEventData;
                 var candidatesWithOldCategory = (await this.repository.GetItemsAsync(m => m.CategoryName == categoryUpdatedEventData.OldCategoryName, false)).ToList();
-                candidatesWithOldCategory.ForEach(async c => await this.repository.UpdateCandidateAsync(c, categoryUpdatedEventData.NewCategoryName));
+                candidatesWithOldCategory.ForEach(async c => await UpdateCategoryNameAsync(c, categoryUpdatedEventData.NewCategoryName));
             }
 
             return Ok();
+        }
+
+        private async Task UpdateCategoryNameAsync(Candidate candidate, string newCategoryName)
+        {
+            var id = candidate.Id;
+            var categoryName = candidate.CategoryName;
+
+            candidate.CategoryName = newCategoryName;
+
+            await this.repository.ReuploadItemAsync(id, categoryName, candidate);
         }
 
         private static bool IsCategoryUpdatedEvent(EventGridEvent eventGridEvent)

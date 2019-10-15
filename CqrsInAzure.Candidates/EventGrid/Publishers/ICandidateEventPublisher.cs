@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace CqrsInAzure.Candidates.EventGrid.Publishers
 {
-    public interface ICandidateCreatedEventPublisher
+    public interface ICandidateEventPublisher
     {
-        Task PublishAsync(Candidate eventData);
+        Task PublishAsync(string eventSubject, object eventData);
     }
 }

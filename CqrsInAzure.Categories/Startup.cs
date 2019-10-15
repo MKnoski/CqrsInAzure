@@ -54,7 +54,7 @@ namespace CqrsInAzure.Categories
         private static void RegisterServices(IServiceCollection services)
         {
             services.AddSingleton<ICategoriesStorage, CategoriesStorage>();
-            services.AddSingleton<ICategoryUpdateEventPublisher, CategoryUpdateEventPublisher>();
+            services.AddSingleton<ICategoryEventPublisher, CategoryEventPublisher>();
         }
     }
 }

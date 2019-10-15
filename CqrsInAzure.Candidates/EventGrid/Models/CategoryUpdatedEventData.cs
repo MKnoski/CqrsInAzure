@@ -1,4 +1,4 @@
-﻿namespace CqrsInAzure.Candidates.Models
+﻿namespace CqrsInAzure.Candidates.EventGrid.Models
 {
     public class CategoryUpdatedEventData
     {

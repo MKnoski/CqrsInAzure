@@ -5,6 +5,7 @@ using CqrsInAzure.Categories.EventGrid.Models;
 using CqrsInAzure.Categories.Models;
 using CqrsInAzure.Categories.Storage;
 using Microsoft.AspNetCore.Mvc;
+using CqrsInAzure.Candidates.Helpers;
 
 namespace CqrsInAzure.Categories.Controllers
 {
@@ -13,9 +14,9 @@ namespace CqrsInAzure.Categories.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoriesStorage storage;
-        private readonly ICategoryUpdateEventPublisher eventPublisher;
+        private readonly ICategoryEventPublisher eventPublisher;
 
-        public CategoriesController(ICategoriesStorage storage, ICategoryUpdateEventPublisher eventPublisher)
+        public CategoriesController(ICategoriesStorage storage, ICategoryEventPublisher eventPublisher)
         {
             this.storage = storage;
             this.eventPublisher = eventPublisher;
@@ -36,27 +37,29 @@ namespace CqrsInAzure.Categories.Controllers
         }
 
         [HttpPost]
-        public async Task<string> PostAsync([FromBody] Category category)
+        public async Task PostAsync([FromBody] Category category)
         {
-            return await this.storage.AddAsync(category);
+            await this.storage.AddAsync(category);
         }
 
         [HttpPut("{name}")]
-        public async Task<string> PutAsync(string name, [FromBody] Category category)
+        public async Task PutAsync(string name, [FromBody] Category updateCategory)
         {
-            var newName = await this.storage.UpdateAsync(name, category);
+            var originalCategory = await this.storage.GetAsync(name);
 
-            if (name != newName)
+            var newCategory = updateCategory.Merge(originalCategory);
+            await this.storage.UpdateAsync(originalCategory.Name, newCategory);
+
+            if (name != newCategory.Name)
             {
                 await this.eventPublisher.PublishAsync(
+                    "cqrsInAzure/category/updated",
                     new CategoryUpdatedEventData
                     {
                         OldCategoryName = name,
-                        NewCategoryName = newName
+                        NewCategoryName = newCategory.Name
                     });
             }
-
-            return newName;
         }
 
         [HttpDelete("{name}")]

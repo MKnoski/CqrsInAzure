@@ -72,7 +72,7 @@ namespace CqrsInAzure.Search.Clients
                     collectionName: CollectionName);
 
                 cosmosDbDataSource.DataDeletionDetectionPolicy = new SoftDeleteColumnDeletionDetectionPolicy("isDeleted", true);
-                
+
                 await this.searchClient.DataSources.CreateOrUpdateAsync(cosmosDbDataSource);
 
                 Indexer cosmosDbIndexer = new Indexer(
@@ -89,35 +89,35 @@ namespace CqrsInAzure.Search.Clients
             }
         }
 
-        public void InsertCandidates(List<Candidate> candidates)
+        public async Task InsertCandidatesAsync(List<Candidate> candidates)
         {
             // An upload action is similar to an "upsert" where the document will be inserted if it is new and updated/replaced if it exists
             var batch = IndexBatch.Upload(candidates);
-            ExecuteBatch(batch);
+            await ExecuteBatchAsync(batch);
         }
 
-        public void InsertOrUpdateCandidates(List<Candidate> candidates)
+        public async Task InsertOrUpdateCandidatesAsync(List<Candidate> candidates)
         {
             // This action behaves like merge if a document with the given key already exists in the index.
             // If the document does not exist, it behaves like upload with a new document.
             var batch = IndexBatch.MergeOrUpload(candidates);
-            ExecuteBatch(batch);
+            await ExecuteBatchAsync(batch);
         }
 
-        public void UpdateCandidates(List<Candidate> candidates)
+        public async Task UpdateCandidatesAsync(List<Candidate> candidates)
         {
             // Merge updates an existing document with the specified fields.
             // If the document doesn't exist, the merge will fail.
             // Any field you specify in a merge will replace the existing field in the document
             var batch = IndexBatch.Merge(candidates);
-            ExecuteBatch(batch);
+            await ExecuteBatchAsync(batch);
         }
 
-        public void DeleteCandidates(List<Candidate> candidates)
+        public async Task DeleteCandidatesAsync(List<Candidate> candidates)
         {
             // Delete removes the specified document from the index
             var batch = IndexBatch.Delete(candidates);
-            ExecuteBatch(batch);
+            await ExecuteBatchAsync(batch);
         }
 
         public async Task<IEnumerable<SearchResult<Candidate>>> SearchDocumentsAsync(
@@ -156,11 +156,11 @@ namespace CqrsInAzure.Search.Clients
             return results.Results;
         }
 
-        private void ExecuteBatch(IndexBatch<Candidate> batch)
+        private async Task ExecuteBatchAsync(IndexBatch<Candidate> batch)
         {
             try
             {
-                this.indexClient.Documents.Index(batch);
+                await this.indexClient.Documents.IndexAsync(batch);
             }
             catch (IndexBatchException e)
             {

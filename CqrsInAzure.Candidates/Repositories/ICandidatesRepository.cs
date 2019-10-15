@@ -16,7 +16,7 @@ namespace CqrsInAzure.Candidates.Repositories
 
         Task UpdateItemAsync(string id, string partitionKey, Candidate item);
 
-        Task UpdateCandidateAsync(Candidate candidate, string newCategoryName);
+        Task ReuploadItemAsync(string id, string partitionKey, Candidate item);
 
         Task DeleteItemAsync(string id, string partitionKey);
 

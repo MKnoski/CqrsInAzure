@@ -7,22 +7,21 @@ using System.Threading.Tasks;
 
 namespace CqrsInAzure.Candidates.EventGrid.Publishers
 {
-    public class CandidateCreatedEventPublisher : ICandidateCreatedEventPublisher
+    public class CandidateEventPublisher : ICandidateEventPublisher
     {
-        private const string TopicAuthKey = "y7JvGLIFsjjrHPB7bCkqt7WfpzB7dKzxGCgzRfpOztE=";
-        private const string TopicEndpoint = "https://cqrsinazure-candidatecreated.westeurope-1.eventgrid.azure.net/api/events";
+        private const string TopicAuthKey = "Wh3WXX1WbXWWu+SSwldP+HRbpdfFuVuJmeaypDFE2yY=";
+        private const string TopicEndpoint = "https://cqrsinazure-candidate.westeurope-1.eventgrid.azure.net/api/events";
         private readonly EventGridClient eventGridClient;
 
-        public CandidateCreatedEventPublisher()
+        public CandidateEventPublisher()
         {
             var credentials = new TopicCredentials(TopicAuthKey);
             this.eventGridClient = new EventGridClient(credentials);
         }
 
-        public async Task PublishAsync(Candidate eventData)
+        public async Task PublishAsync(string eventSubject, object eventData)
         {
             var topicHostName = new Uri(TopicEndpoint).Host;
-            var eventSubject = "cqrsInAzure/candidates/created";
 
             await this.eventGridClient.PublishEventsAsync(
                 topicHostName,

@@ -14,8 +14,9 @@ namespace CqrsInAzure.Candidates.Storage
 
         // move to settings
         private readonly string AccountName = "cqrsinazure";
+
         private readonly string AccountKey = "XgcCDsrFhhdD9Tf0seCVJIBqd3NioaGdJ1LNv7ufMTqtHBTRTKdewctwDNs+0BhCH5IjFB1XY+KVlrJ1qeaOZQ==";
-        
+
         public Storage(string containerName)
         {
             StorageCredentials storageCredentials = new StorageCredentials(AccountName, AccountKey);
@@ -47,9 +48,12 @@ namespace CqrsInAzure.Candidates.Storage
 
         public async Task DeleteFileAsync(string name)
         {
-            CloudBlockBlob blob = Get(name);
+            if (!string.IsNullOrEmpty(name))
+            {
+                CloudBlockBlob blob = Get(name);
 
-            await blob.DeleteIfExistsAsync();
+                await blob.DeleteIfExistsAsync();
+            }
         }
 
         public CloudBlockBlob Get(string name)
@@ -88,7 +92,7 @@ namespace CqrsInAzure.Candidates.Storage
             byte[] byteArray = new Byte[fileByteLength];
 
             await blob.DownloadToByteArrayAsync(byteArray, 0);
-            
+
             FileContentResult result = new FileContentResult(byteArray, blob.Properties.ContentType);
 
             return result;

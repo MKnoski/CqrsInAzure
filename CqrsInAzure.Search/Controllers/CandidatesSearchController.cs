@@ -34,15 +34,15 @@ namespace CqrsInAzure.Search.Controllers
         }
 
         [HttpPost]
-        public void Post([FromBody] Candidate candidate)
+        public async Task PostAsync([FromBody] Candidate candidate)
         {
-            this.candidatesSearchClient.InsertOrUpdateCandidates(candidate.ToList());
+            await this.candidatesSearchClient.InsertOrUpdateCandidatesAsync(candidate.ToList());
         }
 
         [HttpDelete("{id}")]
-        public void Delete(string id)
+        public async Task DeleteAsync(string id)
         {
-            this.candidatesSearchClient.DeleteCandidates((id.CreateCandidate().ToList()));
+            await this.candidatesSearchClient.DeleteCandidatesAsync((id.CreateCandidate().ToList()));
         }
     }
 }

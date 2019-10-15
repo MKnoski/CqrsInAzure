@@ -16,7 +16,11 @@ namespace CqrsInAzure.Search.Controllers
     [ApiController]
     public class SyncController : ControllerBase
     {
-        private const string CategoryUpdatedEventSubject = "cqrsInAzure/categories/categoryUpdated";
+        private const string CategoryUpdatedEventSubject = "cqrsInAzure/category/updated";
+
+        private const string CandidateCreatedEventSubject = "cqrsInAzure/candidate/created";
+        private const string CandidateDeletedEventSubject = "cqrsInAzure/candidate/deleted";
+        private const string CandidatesCategoryUpdatedEventSubject = "cqrsInAzure/candidate/category/updated";
 
         private readonly ICandidatesSearchClient candidatesSearchClient;
 
@@ -38,7 +42,7 @@ namespace CqrsInAzure.Search.Controllers
 
             var data = eventGridEvent.Data as JObject;
 
-            if (IsCategoryUpdatedEvent(eventGridEvent))
+            if (string.Equals(eventGridEvent.Subject, CategoryUpdatedEventSubject, StringComparison.OrdinalIgnoreCase))
             {
                 var categoryUpdatedEventData = data.ToObject<CategoryUpdatedEventData>() as CategoryUpdatedEventData;
 
@@ -49,16 +53,63 @@ namespace CqrsInAzure.Search.Controllers
                 if (candidates.Count > 0)
                 {
                     candidates.ForEach(c => c.CategoryName = categoryUpdatedEventData.NewCategoryName);
-                    this.candidatesSearchClient.InsertOrUpdateCandidates(candidates);
+                    await this.candidatesSearchClient.InsertOrUpdateCandidatesAsync(candidates);
                 }
             }
 
             return Ok();
         }
 
-        private static bool IsCategoryUpdatedEvent(EventGridEvent eventGridEvent)
+        [SubscriptionValidation]
+        [HttpPost("handleCandidateModification")]
+        public async Task<IActionResult> HandleCandidateModification([FromBody] object eventData)
         {
-            return string.Equals(eventGridEvent.Subject, CategoryUpdatedEventSubject, StringComparison.OrdinalIgnoreCase);
+            var eventGridEvent = JsonConvert.DeserializeObject<EventGridEvent[]>(eventData.ToString()).FirstOrDefault();
+
+            if (eventGridEvent == null)
+            {
+                return BadRequest();
+            }
+
+            var data = eventGridEvent.Data as JObject;
+
+            switch (eventGridEvent.Subject)
+            {
+                case CandidateCreatedEventSubject:
+                    await HandleCandidateCreatedEventAsync(data);
+                    break;
+
+                case CandidateDeletedEventSubject:
+                    await HandleCandidateDeletedEventAsync(data);
+                    break;
+
+                case CandidatesCategoryUpdatedEventSubject:
+                    await HandleCandidatesCategoryUpdatedEventAsync(data);
+                    break;
+            }
+
+            return Ok();
+        }
+
+        private async Task HandleCandidateCreatedEventAsync(JObject data)
+        {
+            var candidateCreatedEventData = data.ToObject<Candidate>() as Candidate;
+
+            await this.candidatesSearchClient.InsertCandidatesAsync(candidateCreatedEventData.ToList());
+        }
+
+        private async Task HandleCandidatesCategoryUpdatedEventAsync(JObject data)
+        {
+            var candidateUpdatedEventData = data.ToObject<CandidateUpdatedEventData>() as CandidateUpdatedEventData;
+
+            await this.candidatesSearchClient.UpdateCandidatesAsync(candidateUpdatedEventData.NewCandidate.ToList());
+        }
+
+        private async Task HandleCandidateDeletedEventAsync(JObject data)
+        {
+            var candidateDeletedEventData = data.ToObject<Candidate>() as Candidate;
+
+            await this.candidatesSearchClient.DeleteCandidatesAsync(candidateDeletedEventData.ToList());
         }
     }
 }

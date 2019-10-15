@@ -1,5 +1,6 @@
 ﻿using CqrsInAzure.Candidates.EventGrid.Models;
 using CqrsInAzure.Candidates.EventGrid.Publishers;
+using CqrsInAzure.Candidates.Helpers;
 using CqrsInAzure.Candidates.Models;
 using CqrsInAzure.Candidates.Repositories;
 using CqrsInAzure.Candidates.Storage;
@@ -18,9 +19,9 @@ namespace CqrsInAzure.Candidates.Controllers
         private readonly ICandidatesRepository repository;
         private readonly ICvStorage cvStorage;
         private readonly IPhotosStorage photosStorage;
-        private readonly ICandidateCreatedEventPublisher candidateCreatedEventPublisher;
+        private readonly ICandidateEventPublisher candidateCreatedEventPublisher;
 
-        public CandidatesController(ICandidatesRepository repository, ICvStorage cvStorage, IPhotosStorage photosStorage, ICandidateCreatedEventPublisher candidateCreatedEventPublisher)
+        public CandidatesController(ICandidatesRepository repository, ICvStorage cvStorage, IPhotosStorage photosStorage, ICandidateEventPublisher candidateCreatedEventPublisher)
         {
             this.repository = repository;
             this.cvStorage = cvStorage;
@@ -52,27 +53,41 @@ namespace CqrsInAzure.Candidates.Controllers
         [HttpPost]
         public async Task PostAsync([FromBody] Candidate candidate)
         {
-            // Validate - category exists
+            // TODO Validate if category exists
+
             await this.repository.CreateItemAsync(candidate);
 
-            await this.candidateCreatedEventPublisher.PublishAsync(candidate);
+            await this.candidateCreatedEventPublisher.PublishAsync("cqrsInAzure/candidate/created", candidate);
         }
 
         [HttpPut("{id}/{partitionKey}")]
-        public async Task PutAsync(string id, string partitionKey, [FromBody] Candidate candidate)
+        public async Task PutAsync(string id, string partitionKey, [FromBody] Candidate updateCandidate)
         {
-            var newCategoryName = string.IsNullOrEmpty(candidate.CategoryName) ? partitionKey : candidate.CategoryName;
+            // TODO Validate if category exists
 
-            candidate.Id = id;
-            candidate.CategoryName = partitionKey;
+            var originalCandidate = await this.repository.GetItemAsync(id, partitionKey);
+            var newCandidate = updateCandidate.Merge(originalCandidate);
 
-            if (partitionKey != newCategoryName)
+            string newCategoryName = default;
+            if (!string.IsNullOrEmpty(newCandidate.CategoryName) && newCandidate.CategoryName != originalCandidate.CategoryName)
             {
-                await this.repository.UpdateCandidateAsync(candidate, newCategoryName);
+                newCategoryName = newCandidate.CategoryName;
+            }
+
+            if (newCategoryName != null)
+            {
+                await this.repository.ReuploadItemAsync(originalCandidate.Id, originalCandidate.CategoryName, newCandidate);
+
+                var eventData = new CandidateUpdatedEventData
+                {
+                    OldCandidate = originalCandidate,
+                    NewCandidate = newCandidate
+                };
+                await this.candidateCreatedEventPublisher.PublishAsync("cqrsInAzure/candidate/updated", eventData);
             }
             else
             {
-                await this.repository.UpdateItemAsync(id, partitionKey, candidate);
+                await this.repository.UpdateItemAsync(originalCandidate.Id, originalCandidate.CategoryName, newCandidate);
             }
         }
 
@@ -90,6 +105,8 @@ namespace CqrsInAzure.Candidates.Controllers
             await this.photosStorage.DeleteAsync(candidate.PhotoId);
 
             await this.repository.DeleteSoftItemAsync(id, partitionKey);
+
+            await this.candidateCreatedEventPublisher.PublishAsync("cqrsInAzure/candidate/deleted", candidate);
         }
 
         private CandidateViewModel Map(Candidate candidate)

@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace CqrsInAzure.Candidates.Models
 {
+    [Serializable]
     public class Candidate : Deletable, IIdentifiable
     {
         [JsonProperty(PropertyName = "id")]

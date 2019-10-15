@@ -6,7 +6,7 @@ namespace CqrsInAzure.Categories.Storage
 {
     public interface ICategoriesStorage
     {
-        Task<string> AddAsync(Category category);
+        Task AddAsync(Category category);
 
         Task<bool> IsEmptyAsync();
 
@@ -16,6 +16,6 @@ namespace CqrsInAzure.Categories.Storage
 
         Task DeleteAsync(string name);
 
-        Task<string> UpdateAsync(string name, Category category);
+        Task UpdateAsync(string name, Category category);
     }
 }
