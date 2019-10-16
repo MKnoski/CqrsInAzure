@@ -25,6 +25,7 @@ namespace CqrsInAzure.Search
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "CqrsInAzure.Search", Version = "v1" });
             });
+            services.AddApplicationInsightsTelemetry();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
