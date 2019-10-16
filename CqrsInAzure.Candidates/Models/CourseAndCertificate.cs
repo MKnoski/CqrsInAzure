@@ -10,7 +10,7 @@ namespace CqrsInAzure.Candidates.Models
         public string Name { get; set; }
 
         [JsonProperty(PropertyName = "date")]
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
 
         [JsonProperty(PropertyName = "other")]
         public string Other { get; set; } = "";

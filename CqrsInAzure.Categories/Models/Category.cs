@@ -10,9 +10,9 @@ namespace CqrsInAzure.Categories.Models
         public string Name { get; set; }
 
         [JsonProperty(PropertyName = "sortOrder")]
-        public SortOrder SortOrder { get; set; }
+        public SortOrder? SortOrder { get; set; }
 
         [JsonProperty(PropertyName = "assignedCandidates")]
-        public int AssignedCandidates { get; set; }
+        public int? AssignedCandidates { get; set; }
     }
 }
