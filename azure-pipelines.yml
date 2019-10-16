@@ -34,7 +34,7 @@ steps:
   displayName: Publish
   inputs:
     command: publish
-    projects: '$A(Parameters.RestoreBuildProjects)'
+    projects: '$(Parameters.RestoreBuildProjects)'
     publishWebProjects: False
     arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)'
     zipAfterPublish: True
