@@ -15,7 +15,7 @@ pool:
 
 variables:
   buildConfiguration: "Release"
-  Parameters.RestoreBuildProjects: "**CqrsInAzure.Candidates/*.csproj"
+  Parameters.RestoreBuildProjects: "**CqrsInAzure.Categories/*.csproj"
 
 steps:
   - task: DotNetCoreCLI@2
