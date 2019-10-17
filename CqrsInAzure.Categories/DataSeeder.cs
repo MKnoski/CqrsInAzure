@@ -24,17 +24,20 @@ namespace CqrsInAzure.Categories
             new Category
             {
                 Name = "Education",
-                SortOrder = SortOrder.Medium
+                SortOrder = SortOrder.Medium,
+                AssignedCandidates = 0
             },
             new Category
             {
                 Name = "SoftwareDevelopment",
-                SortOrder = SortOrder.High
+                SortOrder = SortOrder.High,
+                AssignedCandidates = 0
             },
             new Category
             {
                 Name = "RealEstate",
-                SortOrder = SortOrder.Low
+                SortOrder = SortOrder.Low,
+                AssignedCandidates = 0
             },
         };
     }
