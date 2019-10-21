@@ -21,7 +21,7 @@ namespace CqrsInAzure.Candidates.Controllers
             this.cvStorage = cvStorage;
         }
 
-        [HttpGet()]
+        [HttpGet]
         public async Task<ActionResult<byte[]>> GetAsync(string candidateId, string partitionKey)
         {
             var candidate = await this.repository.GetItemAsync(candidateId, partitionKey);

@@ -61,7 +61,7 @@ namespace CqrsInAzure.Candidates.Controllers
             }
         }
 
-        [HttpDelete()]
+        [HttpDelete]
         public async Task<ActionResult> DeleteAsync(string candidateId, string partitionKey)
         {
             var candidate = await this.repository.GetItemAsync(candidateId, partitionKey);

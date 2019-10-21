@@ -1,4 +1,5 @@
-﻿using CqrsInAzure.Candidates.EventGrid.Models;
+﻿using System;
+using CqrsInAzure.Candidates.EventGrid.Models;
 using CqrsInAzure.Candidates.EventGrid.Publishers;
 using CqrsInAzure.Candidates.Helpers;
 using CqrsInAzure.Candidates.Models;
@@ -8,7 +9,9 @@ using CqrsInAzure.Candidates.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting.Internal;
 
 namespace CqrsInAzure.Candidates.Controllers
 {
@@ -20,13 +23,15 @@ namespace CqrsInAzure.Candidates.Controllers
         private readonly ICvStorage cvStorage;
         private readonly IPhotosStorage photosStorage;
         private readonly ICandidateEventPublisher candidateCreatedEventPublisher;
+        private readonly IRequestRepository requestRepository;
 
-        public CandidatesController(ICandidatesRepository repository, ICvStorage cvStorage, IPhotosStorage photosStorage, ICandidateEventPublisher candidateCreatedEventPublisher)
+        public CandidatesController(ICandidatesRepository repository, ICvStorage cvStorage, IPhotosStorage photosStorage, ICandidateEventPublisher candidateCreatedEventPublisher, IRequestRepository requestRepository)
         {
             this.repository = repository;
             this.cvStorage = cvStorage;
             this.photosStorage = photosStorage;
             this.candidateCreatedEventPublisher = candidateCreatedEventPublisher;
+            this.requestRepository = requestRepository;
         }
 
         [HttpGet]
@@ -51,20 +56,19 @@ namespace CqrsInAzure.Candidates.Controllers
         }
 
         [HttpPost]
-        public async Task PostAsync([FromBody] Candidate candidate)
+        public async Task<string> PostAsync([FromBody] Candidate candidate)
         {
-            // TODO Validate if category exists
+            var request = new Request("Candidate creation");
+            await requestRepository.CreateItemAsync(request);
 
-            await this.repository.CreateItemAsync(candidate);
+            new Task(async () => { await CreateCandidateAsync(request, candidate); }).RunSynchronously();
 
-            await this.candidateCreatedEventPublisher.PublishAsync("cqrsInAzure/candidate/created", candidate);
+            return request.Id;
         }
 
         [HttpPut("{id}/{partitionKey}")]
         public async Task PutAsync(string id, string partitionKey, [FromBody] Candidate updateCandidate)
         {
-            // TODO Validate if category exists
-
             var originalCandidate = await this.repository.GetItemAsync(id, partitionKey);
             var newCandidate = updateCandidate.Merge(originalCandidate);
 
@@ -128,6 +132,20 @@ namespace CqrsInAzure.Candidates.Controllers
                 CvLink = cvLink,
                 PhotoLink = photoLink
             };
+        }
+
+        private async Task CreateCandidateAsync(Request request, Candidate candidate)
+        {
+            await Task.Delay(60000);
+
+            await this.repository.CreateItemAsync(candidate);
+
+            request.RequestStatus = RequestStatus.Succeeded;
+            request.ItemId = candidate.Id;
+
+            await this.requestRepository.UpdateItemAsync(request.Id, request.Id, request);
+
+            await this.candidateCreatedEventPublisher.PublishAsync("cqrsInAzure/candidate/created", candidate);
         }
     }
 }
